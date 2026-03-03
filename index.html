@@ -1,0 +1,1147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falconium Backend Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #1a1428;
+    color: #e8e4f0;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #2B1F54 0%, #1a1428 100%);
+    border-bottom: 3px solid #C3A183;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #C3A183;
+    letter-spacing: 1px;
+  }
+  .header .subtitle {
+    font-size: 13px;
+    color: #9a8fb8;
+    margin-top: 2px;
+  }
+  .header .date {
+    font-size: 12px;
+    color: #7a6f98;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 24px;
+    padding: 14px 40px;
+    background: #221a3a;
+    border-bottom: 1px solid #3a2f5a;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #b0a8c8;
+  }
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* Canvas */
+  .canvas {
+    padding: 30px 40px;
+    min-height: calc(100vh - 140px);
+    position: relative;
+  }
+
+  /* SVG layer for arrows */
+  .arrow-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7a6f98;
+    margin-bottom: 16px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #2f2650;
+  }
+
+  /* Grid layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr 220px;
+    gap: 30px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* App boxes */
+  .app-box {
+    background: #251e40;
+    border: 1px solid #3a2f5a;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .app-box:hover {
+    border-color: #C3A183;
+    box-shadow: 0 0 20px rgba(195, 161, 131, 0.1);
+  }
+  .app-box.island {
+    border: 2px dashed #e67e22;
+    position: relative;
+  }
+  .app-box.island::after {
+    content: 'ISLAND';
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    color: #e67e22;
+    background: rgba(230, 126, 34, 0.15);
+    padding: 2px 6px;
+    border-radius: 3px;
+  }
+  .app-box.has-issues {
+    border-left: 3px solid #e74c3c;
+  }
+  .app-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #3a2f5a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .app-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e4f0;
+  }
+  .app-desc {
+    font-size: 11px;
+    color: #8a7faa;
+    margin-top: 2px;
+  }
+  .app-body {
+    padding: 12px 16px;
+  }
+  .app-body.collapsed {
+    display: none;
+  }
+
+  /* Component items inside apps */
+  .component {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #2f2650;
+    font-size: 12px;
+  }
+  .component:last-child { border-bottom: none; }
+  .comp-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .comp-dot.active { background: #2ecc71; }
+  .comp-dot.partial { background: #f39c12; }
+  .comp-dot.missing { background: #e74c3c; }
+  .comp-dot.planned { background: #3498db; }
+  .comp-name {
+    color: #d0c8e8;
+    flex: 1;
+  }
+  .comp-status {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .status-built { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+  .status-partial { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
+  .status-missing { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+  .status-planned { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+
+  /* External service boxes */
+  .ext-service {
+    background: #1e1833;
+    border: 1px solid #2f2650;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ext-service .svc-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .ext-service .svc-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #d0c8e8;
+  }
+  .ext-service .svc-role {
+    font-size: 10px;
+    color: #7a6f98;
+  }
+
+  /* Client box */
+  .client-box {
+    background: #251e40;
+    border: 1px solid #C3A183;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+  }
+  .client-box .icon {
+    font-size: 36px;
+    margin-bottom: 8px;
+  }
+  .client-box .label {
+    font-size: 14px;
+    font-weight: 600;
+    color: #C3A183;
+  }
+  .client-box .sub {
+    font-size: 11px;
+    color: #8a7faa;
+    margin-top: 4px;
+  }
+
+  /* Backend grid */
+  .backend-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* Issues panel */
+  .issues-panel {
+    margin-top: 30px;
+    background: #251e40;
+    border: 1px solid #3a2f5a;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .issues-header {
+    padding: 14px 20px;
+    background: rgba(231, 76, 60, 0.1);
+    border-bottom: 1px solid #3a2f5a;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e74c3c;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .issues-body {
+    padding: 16px 20px;
+  }
+  .issue-item {
+    padding: 12px 0;
+    border-bottom: 1px solid #2f2650;
+    display: flex;
+    gap: 12px;
+  }
+  .issue-item:last-child { border-bottom: none; }
+  .issue-severity {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    height: fit-content;
+    margin-top: 2px;
+  }
+  .sev-high { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
+  .sev-med { background: rgba(243, 156, 18, 0.2); color: #f39c12; }
+  .sev-low { background: rgba(52, 152, 219, 0.2); color: #3498db; }
+  .issue-text {
+    font-size: 13px;
+    color: #d0c8e8;
+    line-height: 1.5;
+  }
+  .issue-text strong {
+    color: #e8e4f0;
+  }
+
+  /* Infrastructure bar */
+  .infra-bar {
+    margin-top: 30px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+  }
+  .infra-item {
+    background: #1e1833;
+    border: 1px solid #2f2650;
+    border-radius: 6px;
+    padding: 14px;
+    text-align: center;
+  }
+  .infra-item .infra-icon {
+    font-size: 20px;
+    margin-bottom: 6px;
+  }
+  .infra-item .infra-name {
+    font-size: 12px;
+    font-weight: 600;
+    color: #d0c8e8;
+  }
+  .infra-item .infra-detail {
+    font-size: 10px;
+    color: #7a6f98;
+    margin-top: 2px;
+  }
+
+  /* Connection lines (CSS-based) */
+  .connection-label {
+    position: absolute;
+    font-size: 9px;
+    color: #7a6f98;
+    background: #1a1428;
+    padding: 1px 4px;
+    border-radius: 2px;
+    white-space: nowrap;
+  }
+
+  /* Toggle arrow */
+  .toggle-arrow {
+    transition: transform 0.2s;
+    color: #7a6f98;
+    font-size: 12px;
+  }
+  .toggle-arrow.open { transform: rotate(180deg); }
+
+  /* Data flow section */
+  .flow-section {
+    margin-top: 30px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    padding: 16px 0;
+  }
+  .flow-step {
+    background: #251e40;
+    border: 1px solid #3a2f5a;
+    border-radius: 6px;
+    padding: 10px 16px;
+    font-size: 12px;
+    color: #d0c8e8;
+    text-align: center;
+    min-width: 120px;
+    position: relative;
+  }
+  .flow-step .step-label {
+    font-size: 9px;
+    color: #7a6f98;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 4px;
+  }
+  .flow-step.highlight {
+    border-color: #C3A183;
+    background: #2f2348;
+  }
+  .flow-arrow {
+    color: #C3A183;
+    font-size: 18px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+  .flow-step.decision {
+    background: #2a2048;
+    border-color: #9b59b6;
+    transform: rotate(0deg);
+  }
+  .flow-branch {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: flex-start;
+  }
+  .flow-branch-item {
+    font-size: 11px;
+    color: #b0a8c8;
+    padding: 4px 10px;
+    background: #1e1833;
+    border-radius: 4px;
+    border: 1px solid #2f2650;
+  }
+
+  /* Endpoint count badges */
+  .endpoint-badge {
+    display: inline-block;
+    font-size: 10px;
+    background: rgba(195, 161, 131, 0.15);
+    color: #C3A183;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-left: 4px;
+  }
+
+  /* Responsive */
+  @media (max-width: 1200px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .backend-grid { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
+    <div class="subtitle">Live system map â derived from codebase analysis</div>
+  </div>
+  <div class="date">Generated 3 March 2026 &middot; Django 5.0.6</div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div> Built & working</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div> Partial / needs work</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Missing / not implemented</div>
+  <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Planned (future)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:transparent; border: 2px dashed #e67e22;"></div> Island (disconnected)</div>
+  <div class="legend-item"><div class="legend-dot" style="background:transparent; border-left: 3px solid #e74c3c;"></div> Has issues</div>
+</div>
+
+<!-- MAIN CANVAS -->
+<div class="canvas">
+
+  <div class="main-grid">
+
+    <!-- LEFT: CLIENT -->
+    <div>
+      <div class="section-title">Client</div>
+      <div class="client-box" style="margin-bottom: 20px;">
+        <div class="icon">&#x1F4F1;</div>
+        <div class="label">iPad App</div>
+        <div class="sub">Swift / SwiftUI / MVVM</div>
+        <div style="font-size:10px; color:#7a6f98; margin-top:10px; text-align:left; line-height:1.6;">
+          REST API calls &rarr; <span style="color:#C3A183">/api/v1/*</span><br>
+          WebSocket &rarr; <span style="color:#C3A183">ws/transcribe/</span><br>
+          Auth: JWT Bearer tokens
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:30px;">Orchestration</div>
+      <div class="ext-service" style="border-color:#e67e22; border-style:dashed;">
+        <div class="svc-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">n8n</div>
+        <div>
+          <div class="svc-name">n8n Workflows</div>
+          <div class="svc-role">Agent orchestration (MVP)</div>
+          <div style="font-size:9px; color:#e67e22; margin-top:3px;">NOT in backend code</div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top:30px;">Not Implemented</div>
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;">
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Ed</div>
+        <div>
+          <div class="svc-name">Edge Orchestrator</div>
+          <div class="svc-role">On-device Llama 3.5</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Future â not for MVP</div>
+        </div>
+      </div>
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;">
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">An</div>
+        <div>
+          <div class="svc-name">Anonymisation</div>
+          <div class="svc-role">PII/sensitive data masking</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Designed, not coded</div>
+        </div>
+      </div>
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;">
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Em</div>
+        <div>
+          <div class="svc-name">Emotion Engine</div>
+          <div class="svc-role">13-state tone adaptation</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Prompts exist, no backend logic</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CENTER: BACKEND APPS -->
+    <div>
+      <div class="section-title">Django Backend &mdash; 6 Apps <span style="color:#C3A183; font-weight:400;">/api/v1/</span></div>
+
+      <div class="backend-grid">
+
+        <!-- ACCOUNTS -->
+        <div class="app-box" onclick="toggleApp(this)">
+          <div class="app-header">
+            <div class="app-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Ac</div>
+            <div>
+              <div class="app-name">accounts</div>
+              <div class="app-desc">Auth & user profiles</div>
+            </div>
+            <span class="toggle-arrow open">&#9660;</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">User model (email-based auth)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">JWT login + token refresh <span class="endpoint-badge">5 endpoints</span></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Outlook OAuth token storage</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Password reset (sends to admins, not user)</div>
+              <div class="comp-status status-partial">issue</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Celery task decorators commented out</div>
+              <div class="comp-status status-partial">issue</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- CHATS -->
+        <div class="app-box has-issues" onclick="toggleApp(this)">
+          <div class="app-header">
+            <div class="app-icon" style="background:rgba(155,89,182,0.2); color:#9b59b6;">Ch</div>
+            <div>
+              <div class="app-name">chats</div>
+              <div class="app-desc">AI pipeline & conversations</div>
+            </div>
+            <span class="toggle-arrow open">&#9660;</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Conversations & Messages CRUD <span class="endpoint-badge">8 endpoints</span></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">RAPTOR hierarchical retrieval (LLMRaptorView)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Query routing (Claude &rarr; classify)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">General Q&A chain (Claude)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Internet search chain (Perplexity)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">WebSocket audio transcription</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">QuestionLLM audit logging</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Old AIAgent (routing) &mdash; dead code alongside RAPTOR</div>
+              <div class="comp-status status-partial">redundant</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- SERVICES -->
+        <div class="app-box" onclick="toggleApp(this)">
+          <div class="app-header">
+            <div class="app-icon" style="background:rgba(46,204,113,0.2); color:#2ecc71;">Sv</div>
+            <div>
+              <div class="app-name">services</div>
+              <div class="app-desc">Projects, docs, files, config</div>
+            </div>
+            <span class="toggle-arrow open">&#9660;</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Projects + Tasks + SubTasks <span class="endpoint-badge">18 endpoints</span></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">File upload + folder hierarchy</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">RAPTOR indexing pipeline (Celery)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">FalconiumConfig (prompt management)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">PromptSetting (RAG tuning)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Documents (system/internal) admin-managed</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Auto-creates project directory (signal)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MAILS -->
+        <div class="app-box island" onclick="toggleApp(this)">
+          <div class="app-header">
+            <div class="app-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">Ma</div>
+            <div>
+              <div class="app-name">mails</div>
+              <div class="app-desc">Outlook integration</div>
+            </div>
+            <span class="toggle-arrow open">&#9660;</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">OAuth callback + logout <span class="endpoint-badge">18 endpoints</span></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Inbox / Sent / Detail fetch</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Send, reply, reply-all, forward</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Bulk ops (delete, flag, read, importance)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot missing"></div>
+              <div class="comp-name">No local models &mdash; fully stateless</div>
+              <div class="comp-status status-missing">no data</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot missing"></div>
+              <div class="comp-name">Emails not indexed in Weaviate / not searchable by AI</div>
+              <div class="comp-status status-missing">gap</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEETINGS -->
+        <div class="app-box island" onclick="toggleApp(this)">
+          <div class="app-header">
+            <div class="app-icon" style="background:rgba(241,196,15,0.2); color:#f1c40f;">Mt</div>
+            <div>
+              <div class="app-name">meetings</div>
+              <div class="app-desc">Meeting records & tasks</div>
+            </div>
+            <span class="toggle-arrow open">&#9660;</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Meeting CRUD + participants <span class="endpoint-badge">9 endpoints</span></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Meeting messages (speaker-attributed)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Meeting tasks + subtasks + attachments</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Parts &amp; roles per meeting</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Transcript field exists but not indexed for RAG</div>
+              <div class="comp-status status-partial">gap</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot missing"></div>
+              <div class="comp-name">No auto-task generation from transcripts</div>
+              <div class="comp-status status-missing">planned</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MCP SERVER -->
+        <div class="app-box has-issues" onclick="toggleApp(this)">
+          <div class="app-header">
+            <div class="app-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">MC</div>
+            <div>
+              <div class="app-name">mcp_server</div>
+              <div class="app-desc">AI tool interface (JSON-RPC)</div>
+            </div>
+            <span class="toggle-arrow open">&#9660;</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">JSON-RPC endpoint <span class="endpoint-badge">1 endpoint</span></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">6 MCP tools (docs, search, Q&A, list)</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">MCPToolConfig admin-managed registry</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Duplicates RAPTOR agents from chats app</div>
+              <div class="comp-status status-partial">duplication</div>
+            </div>
+            <div class="component">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Separate Weaviate classes (RAPTORNode vs External_documents)</div>
+              <div class="comp-status status-partial">split</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- DATA FLOW: QUERY PIPELINE -->
+      <div class="flow-section">
+        <div class="section-title">Query Pipeline &mdash; What happens when you ask Falconium a question</div>
+        <div class="flow-row">
+          <div class="flow-step">
+            <div class="step-label">Input</div>
+            iPad sends text
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step highlight">
+            <div class="step-label">Router</div>
+            Claude classifies query
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step decision">
+            <div class="step-label">Decision</div>
+            Route to&hellip;
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-branch">
+            <div class="flow-branch-item">&#x1F4DA; <strong>Document retrieval</strong> &rarr; RAPTOR &rarr; Weaviate &rarr; Claude synthesises</div>
+            <div class="flow-branch-item">&#x1F310; <strong>Internet search</strong> &rarr; Perplexity sonar-pro &rarr; answer</div>
+            <div class="flow-branch-item">&#x1F4AC; <strong>General Q&A</strong> &rarr; Claude direct &rarr; answer</div>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#7a6f98; margin-top:8px; padding-left:4px;">
+          All queries logged to <strong style="color:#9b59b6;">QuestionLLM</strong> audit table &middot; Prompts loaded from <strong style="color:#2ecc71;">FalconiumConfig</strong>
+        </div>
+      </div>
+
+      <!-- DATA FLOW: DOCUMENT INDEXING -->
+      <div class="flow-section" style="margin-top:24px;">
+        <div class="section-title">Document Indexing Pipeline</div>
+        <div class="flow-row">
+          <div class="flow-step">
+            <div class="step-label">Upload</div>
+            File uploaded via API or admin
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="step-label">Extract</div>
+            PDF / DOCX / TXT &rarr; text
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="step-label">Chunk</div>
+            512 tokens, 50 overlap
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step highlight">
+            <div class="step-label">RAPTOR</div>
+            Build hierarchy tree (GMM clusters &rarr; summaries)
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step">
+            <div class="step-label">Index</div>
+            Store in Weaviate
+          </div>
+        </div>
+        <div style="font-size:11px; color:#7a6f98; margin-top:8px; padding-left:4px;">
+          <strong style="color:#f39c12;">Two parallel pipelines:</strong>
+          User files &rarr; <code style="color:#C3A183;">External_documents</code> class &nbsp;&middot;&nbsp;
+          System docs &rarr; <code style="color:#C3A183;">RAPTORNode</code> class &nbsp;&middot;&nbsp;
+          Runs as Celery background task
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: EXTERNAL SERVICES -->
+    <div>
+      <div class="section-title">External Services</div>
+
+      <div style="font-size:10px; color:#7a6f98; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase;">LLM Providers</div>
+      <div class="ext-service">
+        <div class="svc-icon" style="background:rgba(155,89,182,0.2); color:#9b59b6;">Cl</div>
+        <div>
+          <div class="svc-name">Anthropic Claude</div>
+          <div class="svc-role">Routing, Q&A, RAPTOR synthesis</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">claude-3-5-haiku-latest</div>
+        </div>
+      </div>
+      <div class="ext-service">
+        <div class="svc-icon" style="background:rgba(46,204,113,0.2); color:#2ecc71;">OA</div>
+        <div>
+          <div class="svc-name">OpenAI</div>
+          <div class="svc-role">Embeddings + RAPTOR summaries</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">text-embedding-ada-002 &middot; gpt-4o-mini</div>
+        </div>
+      </div>
+      <div class="ext-service">
+        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Px</div>
+        <div>
+          <div class="svc-name">Perplexity</div>
+          <div class="svc-role">Web search + source attribution</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">sonar-pro</div>
+        </div>
+      </div>
+
+      <div style="font-size:10px; color:#7a6f98; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase; margin-top:20px;">Data &amp; Storage</div>
+      <div class="ext-service">
+        <div class="svc-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">Wv</div>
+        <div>
+          <div class="svc-name">Weaviate</div>
+          <div class="svc-role">Vector DB (hybrid search)</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">BS25 + vector</div>
+        </div>
+      </div>
+      <div class="ext-service">
+        <div class="svc-icon" style="background:rgba(243,156,18,0.2); color:#f39c12;">S3</div>
+        <div>
+          <div class="svc-name">AWS S3</div>
+          <div class="svc-role">File storage (production)</div>
+        </div>
+      </div>
+
+      <div style="font-size:10px; color:#7a6f98; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase; margin-top:20px;">Integrations</div>
+      <div class="ext-service">
+        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Ms</div>
+        <div>
+          <div class="svc-name">Microsoft Graph</div>
+          <div class="svc-role">Outlook email (OAuth 2.0)</div>
+        </div>
+      </div>
+      <div class="ext-service" style="opacity:0.5; border-style:dashed;">
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Re</div>
+        <div>
+          <div class="svc-name"><s>Replicate (WhisperX)</s></div>
+          <div class="svc-role">Being replaced by WhisperKit</div>
+        </div>
+      </div>
+      <div class="ext-service" style="opacity:0.5; border-style:dashed;">
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">El</div>
+        <div>
+          <div class="svc-name"><s>ElevenLabs (TTS)</s></div>
+          <div class="svc-role">Being deprecated from critical path</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- INFRASTRUCTURE BASELINE -->
+  <div class="infra-bar">
+      <div class="infra-item">
+        <div class="infra-icon">&#x1F418;</div>
+        <div class="infra-name">PostgreSQL 14.1</div>
+        <div class="infra-detail">Primary database</div>
+      </div>
+      <div class="infra-item">
+        <div class="infra-icon">&#x26A1;</div>
+        <div class="infra-name">Redis</</div>
+    </div>
+  </div>
+
+  <!-- INFRASTRUCTURE BAR -->
+  <div style="margin-top:30px;">
+    <div class="section-title">Infrastructure Layer</div>
+    <div class="infra-bar">
+      <div class="infra-item">
+        <div class="infra-icon">&#x1F418;</div>
+        <div class="infra-name">PostgreSQL 14.1</div>
+        <div class="infra-detail">Primary database</div>
+      </div>
+      <div class="infra-item">
+        <div class="infra-icon">&#9889;</div>
+        <div class="infra-name">Redis</div>
+        <div class="infra-detail">Cache + message broker</div>
+      </div>
+      <div class="infra-item">
+        <div class="infra-icon">&#x1F504;</div>
+        <div class="infra-name">Celery</div>
+        <div class="infra-detail">Background task queue</div>
+      </div>
+      <div class="infra-item">
+        <div class="infra-icon">&#x1F433;</div>
+        <div class="infra-name">Docker</div>
+        <div class="infra-detail">Containerised (7 services)</div>
+      </div>
+      <div class="infra-item">
+        <div class="infra-icon">&#x1F680;</div>
+        <div class="infra-name">Daphne (ASGI)</div>
+        <div class="infra-detail">HTTP + WebSocket server</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ISSUES & INCONSISTENCIES -->
+  <div class="issues-panel">
+    <div class="issues-header" onclick="toggleIssues()">
+      &#x26A0; Issues, Gaps &amp; Inconsistencies Found in Codebase
+      <span class="toggle-arrow open" id="issues-arrow">&#9660;</span>
+    </div>
+    <div class="issues-body" id="issues-body">
+
+      <div class="issue-item">
+        <div class="issue-severity sev-high">HIGH</div>
+        <div class="issue-text">
+          <strong>Duplicate RAPTOR agents.</strong>
+          The <code>chats</code> app has its own <code>RaptorAIAgent</code> (raptor_chain.py) and the <code>mcp_server</code> app has two separate copies (mcr_internal_documents.py, mcr_external_documents.py). These are independent implementations of the same logic â changes to one don't propagate to the other. This will cause bugs as the system evolves.
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-high">HIGH</div>
+        <div class="issue-text">
+          <strong>Emails are an island.</strong>
+          The <code>mails</code> app is fully stateless â it stores nothing locally and has zero connection to the AI pipeline. Emails can't be searched by Falconium's AI, can't be referenced in conversations, and aren't indexed in Weaviate. The AI can't help with email-related queries like "summarise my recent emails about Project X."
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-high">HIGH</div>
+        <div class="issue-text">
+          <strong>Meeting transcripts are an island.</strong>
+          The <code>meetings</code> app stores transcripts as a TextField, but they're never indexed into Weaviate. The AI can't search meeting content, extract action items, or answer questions like "what did we discuss about the deadline?"
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-med">MEDIUM</div>
+        <div class="issue-text">
+          <strong>Dead code in chats â old AIAgent.</strong>
+          The <code>chats/ai_services/main.py</code> contains the original <code>AIAgent</code> class with its own routing logic, alongside the newer <code>RaptorAIAgent</code>. The old <code>LLMResponseView</code> endpoint is commented out in urls.py. This dead code creates confusion about which pipeline is active.
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-med">MEDIUM</div>
+        <div class="issue-text">
+          <strong>FalconiumConfig type choices don't match usage.</strong>
+          The model defines types like <code>"frontend_model"</code>, <code>"standard_files_retrieval"</code>, etc. But the chats AI code calls <code>get_active_prompt()</code> with keys like <code>"routing"</code>, <code>"format_retrival_query"</code> â these don't appear in the defined type choices. The lookup relies on a generic query that works despite the mismatch, but it's fragile.
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-med">MEDIUM</div>
+        <div class="issue-text">
+          <strong>Two Weaviate schemas for essentially the same purpose.</strong>
+          User files go into <code>External_documents</code> (with user_id) and system docs go into <code>RAPTORNode</code> (without user_id). The chats RAPTOR agent only searches RAPTORNode. The mcp_server has separate agents for each. This split means a user asking "search all documents" only sees one set.
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-med">MEDIUM</div>
+        <div class="issue-text">
+          <strong>n8n orchestration invisible to backend.</strong>
+          The CLAUDE.md describes n8n as the MVP orchestration layer, but there's no n8n integration in the Django code. n8n presumably calls the API externally, but the backend has no awareness of multi-agent workflows, handoffs, or orchestration state.
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-low">LOW</div>
+        <div class="issue-text">
+          <strong>Password reset emails go to ADMIN_EMAILS, not the user.</strong>
+          In <code>accounts/tasks.py</code>, the reset link is sent to <code>settings.ADMIN_EMAILS</code> rather than the requesting user's email. Likely a development shortcut but will need fixing before any client deployment.
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-low">LOW</div>
+        <div class="issue-text">
+          <strong>JWT access tokens valid for 70 days.</strong>
+          <code>ACCESS_TOKEN_LIFETIME = timedelta(days=70)</code> is extremely long for a security-sensitive financial application. Industry standard is 15-60 minutes with refresh tokens handling re-authentication.
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-low">LOW</div>
+        <div class="issue-text">
+          <strong>CORS allows all origins.</strong>
+          <code>CORS_ORIGIN_ALLOW_ALL = True</code> is fine for development but must be restricted before any external deployment.
+        </div>
+      </div>
+
+      <div class="issue-item">
+        <div class="issue-severity sev-low">LOW</div>
+        <div class="issue-text">
+          <strong>ElevenLabs voice synthesis not in backend.</strong>
+          Referenced in architecture docs and the iPad app likely calls it directly, but there's no backend endpoint for voice generation. This may be intentional (client-side) but worth noting.
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- CROSS-APP DEPENDENCY MAP -->
+  <div style="margin-top:30px;">
+    <div class="section-title">Cross-App Dependencies</div>
+    <div style="background:#251e40; border:1px solid #3a2f5a; border-radius:8px; padding:20px; font-size:13px; line-height:2; color:#d0c8e8;">
+      <div style="display:grid; grid-template-columns: 200px 1fr; gap:8px 20px;">
+        <div style="color:#3498db; font-weight:600;">accounts.User</div>
+        <div>&rarr; used by <strong>all 5 other apps</strong> (FK in conversations, messages, projects, tasks, files, meetings, participants)</div>
+
+        <div style="color:#2ecc71; font-weight:600;">services.FalconiumConfig</div>
+        <div>&rarr; used by <strong>chats</strong> (loads prompts for routing, Q&A, retrieval, search)</div>
+
+        <div style="color:#2ecc71; font-weight:600;">services.PromptSetting</div>
+        <div>&rarr; used by <strong>chats</strong> (RAPTOR search params) and <strong>mcp_server</strong> (RAPTOR search params)</div>
+
+        <div style="color:#9b59b6; font-weight:600;">chats.QuestionLLM</div>
+        <div>&rarr; used by <strong>mcp_server</strong> (logs tool invocations)</div>
+
+        <div style="color:#9b59b6; font-weight:600;">chats.ai_services.*</div>
+        <div>&rarr; used by <strong>mcp_server</strong> (GeneralAnthropicChain, PerplexityInternetChain)</div>
+
+        <div style="color:#2ecc71; font-weight:600;">services.Project</div>
+        <div>&rarr; used by <strong>meetings</strong> (Meeting.project FK)</div>
+
+        <div style="color:#f1c40f; font-weight:600;">meetings.pagination</div>
+        <div>&rarr; used by <strong>mails</strong> (EmailPageNumberPagination â oddly defined in meetings, used in mails)</div>
+
+        <div style="color:#e67e22; font-weight:600;">mails</div>
+        <div>&rarr; <em style="color:#e67e22;">connects only to accounts (for OAuth tokens) â no other app dependencies</em></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleApp(el) {
+  const body = el.querySelector('.app-body');
+  const arrow = el.querySelector('.toggle-arrow');
+  if (body.classList.contains('collapsed')) {
+    body.classList.remove('collapsed');
+    arrow.classList.add('open');
+  } else {
+    body.classList.add('collapsed');
+    arrow.classList.remove('open');
+  }
+}
+
+function toggleIssues() {
+  const body = document.getElementById('issues-body');
+  const arrow = document.getElementById('issues-arrow');
+  if (body.style.display === 'none') {
+    body.style.display = 'block';
+    arrow.classList.add('open');
+  } else {
+    body.style.display = 'none';
+    arrow.classList.remove('open');
+  }
+}
+</script>
+
+</body>
+</html>
