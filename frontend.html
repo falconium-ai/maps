@@ -1,0 +1,1129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Falconium Frontend Architecture</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    background: #1a1428;
+    color: #e8e4f0;
+    overflow-x: hidden;
+  }
+
+  /* Header */
+  .header {
+    background: linear-gradient(135deg, #2B1F54 0%, #1a1428 100%);
+    border-bottom: 3px solid #C3A183;
+    padding: 20px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header h1 {
+    font-size: 22px;
+    font-weight: 600;
+    color: #C3A183;
+    letter-spacing: 1px;
+  }
+  .header .subtitle {
+    font-size: 13px;
+    color: #9a8fb8;
+    margin-top: 2px;
+  }
+  .header .date {
+    font-size: 12px;
+    color: #7a6f98;
+  }
+  .header-nav {
+    font-size: 13px;
+  }
+  .header-nav a {
+    color: #C3A183;
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .header-nav a:hover {
+    color: #e8c5a8;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 24px;
+    padding: 14px 40px;
+    background: #221a3a;
+    border-bottom: 1px solid #3a2f5a;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    color: #b0a8c8;
+  }
+  .legend-dot {
+    width: 14px;
+    height: 14px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* Canvas */
+  .canvas {
+    padding: 30px 40px;
+    min-height: calc(100vh - 140px);
+    position: relative;
+  }
+
+  /* Section titles */
+  .section-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: #7a6f98;
+    margin-bottom: 16px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #2f2650;
+  }
+
+  /* Grid layout */
+  .main-grid {
+    display: grid;
+    grid-template-columns: 200px 1fr 240px;
+    gap: 30px;
+    position: relative;
+    z-index: 2;
+  }
+
+  /* App boxes */
+  .app-box {
+    background: #251e40;
+    border: 1px solid #3a2f5a;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    margin-bottom: 16px;
+  }
+  .app-box:hover {
+    border-color: #C3A183;
+    box-shadow: 0 0 20px rgba(195, 161, 131, 0.1);
+  }
+  .app-header {
+    padding: 14px 16px 10px;
+    border-bottom: 1px solid #3a2f5a;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .app-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .app-name {
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e4f0;
+    flex: 1;
+  }
+  .app-desc {
+    font-size: 11px;
+    color: #8a7faa;
+    margin-top: 2px;
+  }
+  .app-body {
+    padding: 12px 16px;
+  }
+  .app-body.collapsed {
+    display: none;
+  }
+
+  /* Module grid */
+  .modules-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  /* Home module special styling */
+  .app-box.home-module {
+    grid-column: 1 / -1;
+  }
+
+  /* Screen list */
+  .screen-group {
+    margin-bottom: 12px;
+  }
+  .screen-group-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9a8fb8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 6px 0;
+    margin-bottom: 4px;
+    border-left: 2px solid #C3A183;
+    padding-left: 8px;
+  }
+  .screen-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 4px 0;
+    padding-left: 8px;
+    font-size: 11px;
+  }
+  .screen-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .screen-dot.built { background: #2ecc71; }
+  .screen-dot.planned { background: #3498db; }
+  .screen-name {
+    color: #d0c8e8;
+    flex: 1;
+  }
+
+  /* Component items inside apps */
+  .component {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 6px 0;
+    border-bottom: 1px solid #2f2650;
+    font-size: 12px;
+  }
+  .component:last-child { border-bottom: none; }
+  .comp-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    margin-top: 5px;
+    flex-shrink: 0;
+  }
+  .comp-dot.active { background: #2ecc71; }
+  .comp-dot.partial { background: #f39c12; }
+  .comp-dot.missing { background: #e74c3c; }
+  .comp-dot.planned { background: #3498db; }
+  .comp-name {
+    color: #d0c8e8;
+    flex: 1;
+  }
+  .comp-status {
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .status-built { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
+  .status-partial { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
+  .status-missing { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
+  .status-planned { background: rgba(52, 152, 219, 0.15); color: #3498db; }
+
+  /* Services grid */
+  .services-section {
+    margin-bottom: 20px;
+  }
+  .service-category {
+    margin-bottom: 14px;
+  }
+  .service-category-title {
+    font-size: 10px;
+    font-weight: 600;
+    color: #9a8fb8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 6px 0;
+    margin-bottom: 6px;
+    border-left: 2px solid #C3A183;
+    padding-left: 8px;
+  }
+  .service-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    padding: 5px 0;
+    padding-left: 8px;
+    font-size: 11px;
+  }
+  .service-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    margin-top: 4px;
+    flex-shrink: 0;
+  }
+  .service-name {
+    color: #d0c8e8;
+  }
+
+  /* External service boxes */
+  .ext-service {
+    background: #1e1833;
+    border: 1px solid #2f2650;
+    border-radius: 6px;
+    padding: 10px 14px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ext-service .svc-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .ext-service .svc-info {
+    flex: 1;
+  }
+  .ext-service .svc-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #d0c8e8;
+  }
+  .ext-service .svc-role {
+    font-size: 9px;
+    color: #7a6f98;
+  }
+
+  /* Architecture pattern box */
+  .arch-box {
+    background: #251e40;
+    border: 1px solid #3a2f5a;
+    border-radius: 8px;
+    padding: 14px;
+    margin-bottom: 14px;
+  }
+  .arch-box .label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9a8fb8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+    padding-bottom: 6px;
+    border-bottom: 1px solid #2f2650;
+  }
+  .arch-box .value {
+    font-size: 12px;
+    color: #d0c8e8;
+    line-height: 1.6;
+  }
+  .nav-flow {
+    font-size: 11px;
+    color: #b0a8c8;
+    padding: 6px 0;
+    border-bottom: 1px solid #2f2650;
+  }
+  .nav-flow:last-child { border-bottom: none; }
+
+  /* API Models section */
+  .api-models-section {
+    margin-top: 30px;
+    background: #251e40;
+    border: 1px solid #3a2f5a;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .api-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid #3a2f5a;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e4f0;
+  }
+  .api-body {
+    padding: 16px 20px;
+  }
+  .api-flow {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+  .api-step {
+    background: #1e1833;
+    border: 1px solid #2f2650;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #d0c8e8;
+    text-align: center;
+    min-width: 80px;
+    position: relative;
+  }
+  .api-arrow {
+    color: #C3A183;
+    font-size: 14px;
+    padding: 0 8px;
+    flex-shrink: 0;
+  }
+  .api-categories {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 8px;
+    margin-top: 12px;
+  }
+  .api-cat {
+    background: #1e1833;
+    border: 1px solid #2f2650;
+    border-radius: 6px;
+    padding: 8px;
+    font-size: 10px;
+    text-align: center;
+    color: #b0a8c8;
+  }
+
+  /* Data flow section */
+  .flow-section {
+    margin-top: 30px;
+    background: #251e40;
+    border: 1px solid #3a2f5a;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .flow-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid #3a2f5a;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e4f0;
+  }
+  .flow-body {
+    padding: 16px 20px;
+  }
+  .flow-row {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin-bottom: 12px;
+  }
+  .flow-step {
+    background: #1e1833;
+    border: 1px solid #2f2650;
+    border-radius: 6px;
+    padding: 10px 14px;
+    font-size: 11px;
+    color: #d0c8e8;
+    text-align: center;
+    min-width: 100px;
+  }
+  .flow-step.highlight {
+    border-color: #C3A183;
+    background: #2f2348;
+  }
+  .flow-arrow {
+    color: #C3A183;
+    font-size: 16px;
+    padding: 0 10px;
+    flex-shrink: 0;
+  }
+  .flow-detail {
+    font-size: 10px;
+    color: #9a8fb8;
+    margin-top: 6px;
+    padding: 6px;
+    background: #1e1833;
+    border-radius: 4px;
+  }
+
+  /* Network layer bar */
+  .network-bar {
+    margin-top: 30px;
+    background: #251e40;
+    border: 1px solid #3a2f5a;
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .network-header {
+    padding: 14px 20px;
+    border-bottom: 1px solid #3a2f5a;
+    font-size: 14px;
+    font-weight: 600;
+    color: #e8e4f0;
+  }
+  .network-body {
+    padding: 16px 20px;
+  }
+  .network-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 12px;
+  }
+  .net-item {
+    background: #1e1833;
+    border: 1px solid #2f2650;
+    border-radius: 6px;
+    padding: 12px;
+    text-align: center;
+  }
+  .net-icon {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .net-name {
+    font-size: 11px;
+    font-weight: 600;
+    color: #d0c8e8;
+  }
+  .net-detail {
+    font-size: 9px;
+    color: #7a6f98;
+    margin-top: 4px;
+  }
+
+  /* Toggle arrow */
+  .toggle-arrow {
+    transition: transform 0.2s;
+    color: #7a6f98;
+    font-size: 12px;
+  }
+  .toggle-arrow.open { transform: rotate(180deg); }
+
+  /* Status colors */
+  .status-green { color: #2ecc71; }
+  .status-yellow { color: #f39c12; }
+  .status-red { color: #e74c3c; }
+  .status-blue { color: #3498db; }
+
+  /* Responsive */
+  @media (max-width: 1400px) {
+    .main-grid { grid-template-columns: 1fr; }
+    .modules-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV BAR -->
+<div style="background:#221a3a; border-bottom:1px solid #3a2f5a; padding:8px 40px; display:flex; gap:24px; align-items:center; font-size:13px;">
+  <a href="index.html" style="color:#8a7faa; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#C3A183'" onmouseout="this.style.color='#8a7faa'">&larr; Backend</a>
+  <span style="color:#C3A183; font-weight:600; border-bottom:2px solid #C3A183; padding-bottom:2px;">Frontend</span>
+</div>
+
+<!-- HEADER -->
+<div class="header">
+  <div>
+    <h1>FALCONIUM FRONTEND ARCHITECTURE</h1>
+    <div class="subtitle">Live system map — derived from codebase analysis</div>
+  </div>
+  <div class="date">Generated 4 March 2026 &middot; Swift / SwiftUI</div>
+</div>
+
+<!-- LEGEND -->
+<div class="legend">
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #2ecc71;"></div>
+    <span>Built & working</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #f39c12;"></div>
+    <span>Partial / needs work</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #e74c3c;"></div>
+    <span>Missing / not implemented</span>
+  </div>
+  <div class="legend-item">
+    <div class="legend-dot" style="background: #3498db;"></div>
+    <span>Planned (future)</span>
+  </div>
+</div>
+
+<!-- CANVAS -->
+<div class="canvas">
+
+  <div class="main-grid">
+
+    <!-- LEFT COLUMN: Architecture Pattern -->
+    <div>
+      <div class="section-title">Architecture Pattern</div>
+
+      <div class="arch-box">
+        <div class="label">Pattern</div>
+        <div class="value">MVVM + Coordinator</div>
+      </div>
+
+      <div class="app-box">
+        <div class="app-header">
+          <div class="app-icon" style="background: #2f2348;">⬜</div>
+          <div>
+            <div class="app-name">Navigation Flow</div>
+            <div class="app-desc">Module lifecycle</div>
+          </div>
+        </div>
+        <div class="app-body">
+          <div class="nav-flow">Root</div>
+          <div style="text-align: center; color: #7a6f98; font-size: 11px; padding: 4px 0;">↓</div>
+          <div class="nav-flow">Preloader</div>
+          <div style="text-align: center; color: #7a6f98; font-size: 11px; padding: 4px 0;">↓</div>
+          <div class="nav-flow">LogIn</div>
+          <div style="text-align: center; color: #7a6f98; font-size: 11px; padding: 4px 0;">↓</div>
+          <div class="nav-flow">Home (Main Workspace)</div>
+        </div>
+      </div>
+
+      <div class="arch-box">
+        <div class="label">Platform</div>
+        <div class="value">iPad Pro (M-series)<br/>100% Swift / SwiftUI</div>
+      </div>
+    </div>
+
+    <!-- CENTER COLUMN: Modules, Services, Support -->
+    <div>
+      <div class="section-title">Modules & Features</div>
+
+      <div class="modules-grid">
+        <div class="app-box">
+          <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
+            <div class="app-icon" style="background: #2f2348;">📱</div>
+            <div>
+              <div class="app-name">LogIn</div>
+              <div class="app-desc">Authentication</div>
+            </div>
+            <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">User authentication</div>
+              <span class="comp-status status-built">Built</span>
+            </div>
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Microsoft OAuth</div>
+              <span class="comp-status status-built">Built</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-box">
+          <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
+            <div class="app-icon" style="background: #2f2348;">⏳</div>
+            <div>
+              <div class="app-name">Preloader</div>
+              <div class="app-desc">Splash & init</div>
+            </div>
+            <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">App initialization</div>
+              <span class="comp-status status-built">Built</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="app-box">
+          <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
+            <div class="app-icon" style="background: #2f2348;">🌳</div>
+            <div>
+              <div class="app-name">Root</div>
+              <div class="app-desc">App root navigation</div>
+            </div>
+            <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
+          </div>
+          <div class="app-body">
+            <div class="component">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Navigation coordinator</div>
+              <span class="comp-status status-built">Built</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="app-box home-module">
+        <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
+          <div class="app-icon" style="background: #9b59b6;">🏠</div>
+          <div style="flex: 1;">
+            <div class="app-name">Home Module</div>
+            <div class="app-desc">Main workspace — 18 screens, all core features</div>
+          </div>
+          <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
+        </div>
+        <div class="app-body">
+          <div class="screen-group">
+            <div class="screen-group-title">💬 Conversation</div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">Conversation (chat interface)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">AllConversations (history)</div>
+            </div>
+          </div>
+
+          <div class="screen-group">
+            <div class="screen-group-title">📧 Email</div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">Emails (list)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">EmailDetail (view)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">CreateEmail (compose)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">ReplyEmail (reply)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">ForwardEmail (forward)</div>
+            </div>
+          </div>
+
+          <div class="screen-group">
+            <div class="screen-group-title">📞 Meetings</div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">AllMeetings (list)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">Meeting (detail)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">MeetingDetail (full)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">CreateMeeting (schedule)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">LetsHaveMeetingPopUp (modal)</div>
+            </div>
+          </div>
+
+          <div class="screen-group">
+            <div class="screen-group-title">📊 Projects</div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">AllProjects (list)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">ProjectView (detail)</div>
+            </div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">CreateProject (create)</div>
+            </div>
+          </div>
+
+          <div class="screen-group">
+            <div class="screen-group-title">📄 Documents</div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">Documents (library)</div>
+            </div>
+          </div>
+
+          <div class="screen-group">
+            <div class="screen-group-title">⚙️ System</div>
+            <div class="screen-item">
+              <div class="screen-dot built"></div>
+              <div class="screen-name">LLMLoadProgressView (loading)</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title" style="margin-top: 24px;">Services Layer</div>
+
+      <div class="services-section">
+        <div class="service-category">
+          <div class="service-category-title">AI & ML</div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">AIOrchestrator (routing)</div>
+          </div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #f39c12;"></div>
+            <div class="service-name">SpeechToTextService</div>
+          </div>
+        </div>
+
+        <div class="service-category">
+          <div class="service-category-title">Networking</div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">NetworkService (HTTP)</div>
+          </div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">FileDownloader</div>
+          </div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">FileStorage (local)</div>
+          </div>
+        </div>
+
+        <div class="service-category">
+          <div class="service-category-title">Authentication</div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">TokenService (JWT)</div>
+          </div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">MicrosoftAuthManager</div>
+          </div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">KeychainService</div>
+          </div>
+        </div>
+
+        <div class="service-category">
+          <div class="service-category-title">Audio & Recording</div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">AudioRecordingService</div>
+          </div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">RecordingService</div>
+          </div>
+        </div>
+
+        <div class="service-category">
+          <div class="service-category-title">UI Support</div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">LiveMessageWriter</div>
+          </div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">KeyboardObserver</div>
+          </div>
+          <div class="service-item">
+            <div class="service-dot" style="background: #2ecc71;"></div>
+            <div class="service-name">PermissionService</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">Application Support</div>
+
+      <div class="app-box">
+        <div class="app-body" style="padding: 12px;">
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">AppManager</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">AppError</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Constants</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Coordinator</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Formatters</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Global</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Helpers</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Mock</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Protocols</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Resources</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Support</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Validator</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">ViewComponents</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">LLM (libraries)</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Backend & Cloud Services -->
+    <div>
+      <div class="section-title">Backend & Cloud</div>
+
+      <div class="app-box">
+        <div class="app-header">
+          <div class="app-icon" style="background: #2f2348;">⚙️</div>
+          <div>
+            <div class="app-name">Django Backend</div>
+            <div class="app-desc">REST API + WebSocket</div>
+          </div>
+        </div>
+        <div class="app-body">
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Chats (conversations)</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Email integration</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Meetings (transcripts)</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Projects & tasks</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">Documents (RAG)</div>
+          </div>
+          <div class="component">
+            <div class="comp-dot active"></div>
+            <div class="comp-name">MCP tools</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section-title">LLM Providers</div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #2f2348;">🧠</div>
+        <div class="svc-info">
+          <div class="svc-name">Anthropic Claude</div>
+          <div class="svc-role">Primary reasoning</div>
+        </div>
+      </div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #2f2348;">🤖</div>
+        <div class="svc-info">
+          <div class="svc-name">OpenAI GPT-4o</div>
+          <div class="svc-role">Embeddings + fallback</div>
+        </div>
+      </div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #2f2348;">🔍</div>
+        <div class="svc-info">
+          <div class="svc-name">Perplexity</div>
+          <div class="svc-role">Web search</div>
+        </div>
+      </div>
+
+      <div class="section-title">On-Device Speech</div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #3498db;">🎤</div>
+        <div class="svc-info">
+          <div class="svc-name">WhisperKit</div>
+          <div class="svc-role">STT (planned)</div>
+        </div>
+      </div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #3498db;">🔊</div>
+        <div class="svc-info">
+          <div class="svc-name">FluidAudio</div>
+          <div class="svc-role">Diarization + TTS (planned)</div>
+        </div>
+      </div>
+
+      <div class="section-title">Cloud Speech (Deprecated)</div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #e74c3c;">🌐</div>
+        <div class="svc-info">
+          <div class="svc-name">Replicate</div>
+          <div class="svc-role">STT fallback (being phased)</div>
+        </div>
+      </div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #e74c3c;">🎙️</div>
+        <div class="svc-info">
+          <div class="svc-name">ElevenLabs</div>
+          <div class="svc-role">TTS (being phased)</div>
+        </div>
+      </div>
+
+      <div class="section-title">Integration</div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #2f2348;">📤</div>
+        <div class="svc-info">
+          <div class="svc-name">Microsoft Graph</div>
+          <div class="svc-role">Outlook OAuth</div>
+        </div>
+      </div>
+
+      <div class="ext-service">
+        <div class="svc-icon" style="background: #2f2348;">🗂️</div>
+        <div class="svc-info">
+          <div class="svc-name">AWS S3</div>
+          <div class="svc-role">File storage</div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- API MODELS SECTION -->
+  <div class="api-models-section">
+    <div class="api-header">API Models Flow</div>
+    <div class="api-body">
+      <div class="api-flow">
+        <div class="api-step">25+ Request Models (Body/)</div>
+        <div class="api-arrow">→</div>
+        <div class="api-step">NetworkService</div>
+        <div class="api-arrow">→</div>
+        <div class="api-step">Backend API</div>
+        <div class="api-arrow">→</div>
+        <div class="api-step">Response Models</div>
+      </div>
+      <div class="api-categories">
+        <div class="api-cat">AI (Claude, GPT, Perplexity)</div>
+        <div class="api-cat">Email (CRUD, OAuth)</div>
+        <div class="api-cat">Meetings (transcripts, tasks)</div>
+        <div class="api-cat">Projects (create, manage)</div>
+        <div class="api-cat">Documents (RAG, upload)</div>
+        <div class="api-cat">Messaging (send, stream)</div>
+        <div class="api-cat">MCP Tools (invoke)</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DATA FLOW SECTION -->
+  <div class="flow-section">
+    <div class="flow-header">User Query Data Flow</div>
+    <div class="flow-body">
+      <div class="flow-row">
+        <div class="flow-step">User Input</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">AIOrchestrator</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">Route Decision</div>
+      </div>
+      <div class="flow-detail">
+        Routes to: Claude (general Q&A) | GPT-4o (embeddings) | Perplexity (web search)
+      </div>
+      <div class="flow-row" style="margin-top: 12px;">
+        <div class="flow-step">LLM Response</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step">LiveMessageWriter</div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step highlight">Display</div>
+      </div>
+      <div class="flow-detail">
+        Streaming text + real-time UI updates + voice synthesis
+      </div>
+    </div>
+  </div>
+
+  <!-- NETWORK LAYER SECTION -->
+  <div class="network-bar">
+    <div class="network-header">Custom Network Layer</div>
+    <div class="network-body">
+      <div class="network-items">
+        <div class="net-item">
+          <div class="net-icon">⚡</div>
+          <div class="net-name">HTTP Stack</div>
+          <div class="net-detail">No Alamofire — full control</div>
+        </div>
+        <div class="net-item">
+          <div class="net-icon">📦</div>
+          <div class="net-name">Request Encoding</div>
+          <div class="net-detail">JSON + multipart support</div>
+        </div>
+        <div class="net-item">
+          <div class="net-icon">🔄</div>
+          <div class="net-name">Retry Logic</div>
+          <div class="net-detail">Exponential backoff</div>
+        </div>
+        <div class="net-item">
+          <div class="net-icon">🔗</div>
+          <div class="net-name">WebSocket Streaming</div>
+          <div class="net-detail">Real-time messages</div>
+        </div>
+        <div class="net-item">
+          <div class="net-icon">🔐</div>
+          <div class="net-name">Header Management</div>
+          <div class="net-detail">JWT + OAuth tokens</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function toggleBox(header) {
+  const body = header.nextElementSibling;
+  if (body && body.classList.contains('app-body')) {
+    body.classList.toggle('collapsed');
+    const arrow = header.querySelector('.toggle-arrow');
+    if (arrow) {
+      arrow.classList.toggle('open');
+    }
+  }
+}
+</script>
+
+</body>
+</html>
