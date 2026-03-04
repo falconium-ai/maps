@@ -445,13 +445,19 @@
 </head>
 <body>
 
+<!-- NAV BAR -->
+<div style="background:#221a3a; border-bottom:1px solid #3a2f5a; padding:8px 40px; display:flex; gap:24px; align-items:center; font-size:13px;">
+  <span style="color:#C3A183; font-weight:600; border-bottom:2px solid #C3A183; padding-bottom:2px;">Backend</span>
+  <a href="frontend.html" style="color:#8a7faa; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#C3A183'" onmouseout="this.style.color='#8a7faa'">Frontend &rarr;</a>
+</div>
+
 <!-- HEADER -->
 <div class="header">
   <div>
     <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
-    <div class="subtitle">Live system map â derived from codebase analysis</div>
+    <div class="subtitle">Live system map — derived from codebase analysis</div>
   </div>
-  <div class="date">Generated 3 March 2026 &middot; Django 5.0.6</div>
+  <div class="date">Generated 4 March 2026 &middot; Django 5.0.6</div>
 </div>
 
 <!-- LEGEND -->
@@ -499,7 +505,7 @@
         <div>
           <div class="svc-name">Edge Orchestrator</div>
           <div class="svc-role">On-device Llama 3.5</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Future â not for MVP</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Future — not for MVP</div>
         </div>
       </div>
       <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;">
@@ -891,64 +897,60 @@
         <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Px</div>
         <div>
           <div class="svc-name">Perplexity</div>
-          <div class="svc-role">Web search + source attribution</div>
+          <div class="svc-role">Real-time internet search</div>
           <div style="font-size:10px; color:#5a5080; margin-top:2px;">sonar-pro</div>
         </div>
       </div>
 
-      <div style="font-size:10px; color:#7a6f98; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase; margin-top:20px;">Data &amp; Storage</div>
+      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Audio & Voice</div>
       <div class="ext-service">
-        <div class="svc-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">Wv</div>
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Gr</div>
         <div>
-          <div class="svc-name">Weaviate</div>
-          <div class="svc-role">Vector DB (hybrid search)</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">BS25 + vector</div>
+          <div class="svc-name">Groq</div>
+          <div class="svc-role">Fast Whisper transcription</div>
         </div>
       </div>
       <div class="ext-service">
-        <div class="svc-icon" style="background:rgba(243,156,18,0.2); color:#f39c12;">S3</div>
+        <div class="svc-icon" style="background:rgba(241,196,15,0.2); color:#f1c40f;">Re</div>
         <div>
-          <div class="svc-name">AWS S3</div>
-          <div class="svc-role">File storage (production)</div>
+          <div class="svc-name">Replicate</div>
+          <div class="svc-role">WhisperX + speaker diarisation</div>
+        </div>
+      </div>
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.5;">
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">11</div>
+        <div>
+          <div class="svc-name">ElevenLabs</div>
+          <div class="svc-role">Voice synthesis</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Configured but not in backend code</div>
         </div>
       </div>
 
-      <div style="font-size:10px; color:#7a6f98; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase; margin-top:20px;">Integrations</div>
+      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Integrations</div>
       <div class="ext-service">
-        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Ms</div>
+        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">MS</div>
         <div>
           <div class="svc-name">Microsoft Graph</div>
           <div class="svc-role">Outlook email (OAuth 2.0)</div>
         </div>
       </div>
-      <div class="ext-service" style="opacity:0.5; border-style:dashed;">
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Re</div>
+
+      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Storage & Data</div>
+      <div class="ext-service">
+        <div class="svc-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">S3</div>
         <div>
-          <div class="svc-name"><s>Replicate (WhisperX)</s></div>
-          <div class="svc-role">Being replaced by WhisperKit</div>
+          <div class="svc-name">AWS S3</div>
+          <div class="svc-role">File storage (production)</div>
         </div>
       </div>
-      <div class="ext-service" style="opacity:0.5; border-style:dashed;">
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">El</div>
+      <div class="ext-service">
+        <div class="svc-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">Wv</div>
         <div>
-          <div class="svc-name"><s>ElevenLabs (TTS)</s></div>
-          <div class="svc-role">Being deprecated from critical path</div>
+          <div class="svc-name">Weaviate</div>
+          <div class="svc-role">Vector DB for RAG</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">2 classes: RAPTORNode + External_documents</div>
         </div>
       </div>
-
-    </div>
-  </div>
-
-  <!-- INFRASTRUCTURE BASELINE -->
-  <div class="infra-bar">
-      <div class="infra-item">
-        <div class="infra-icon">&#x1F418;</div>
-        <div class="infra-name">PostgreSQL 14.1</div>
-        <div class="infra-detail">Primary database</div>
-      </div>
-      <div class="infra-item">
-        <div class="infra-icon">&#x26A1;</div>
-        <div class="infra-name">Redis</</div>
     </div>
   </div>
 
@@ -996,7 +998,7 @@
         <div class="issue-severity sev-high">HIGH</div>
         <div class="issue-text">
           <strong>Duplicate RAPTOR agents.</strong>
-          The <code>chats</code> app has its own <code>RaptorAIAgent</code> (raptor_chain.py) and the <code>mcp_server</code> app has two separate copies (mcr_internal_documents.py, mcr_external_documents.py). These are independent implementations of the same logic â changes to one don't propagate to the other. This will cause bugs as the system evolves.
+          The <code>chats</code> app has its own <code>RaptorAIAgent</code> (raptor_chain.py) and the <code>mcp_server</code> app has two separate copies (mcr_internal_documents.py, mcr_external_documents.py). These are independent implementations of the same logic — changes to one don't propagate to the other. This will cause bugs as the system evolves.
         </div>
       </div>
 
@@ -1004,7 +1006,7 @@
         <div class="issue-severity sev-high">HIGH</div>
         <div class="issue-text">
           <strong>Emails are an island.</strong>
-          The <code>mails</code> app is fully stateless â it stores nothing locally and has zero connection to the AI pipeline. Emails can't be searched by Falconium's AI, can't be referenced in conversations, and aren't indexed in Weaviate. The AI can't help with email-related queries like "summarise my recent emails about Project X."
+          The <code>mails</code> app is fully stateless — it stores nothing locally and has zero connection to the AI pipeline. Emails can't be searched by Falconium's AI, can't be referenced in conversations, and aren't indexed in Weaviate. The AI can't help with email-related queries like "summarise my recent emails about Project X."
         </div>
       </div>
 
@@ -1019,7 +1021,7 @@
       <div class="issue-item">
         <div class="issue-severity sev-med">MEDIUM</div>
         <div class="issue-text">
-          <strong>Dead code in chats â old AIAgent.</strong>
+          <strong>Dead code in chats — old AIAgent.</strong>
           The <code>chats/ai_services/main.py</code> contains the original <code>AIAgent</code> class with its own routing logic, alongside the newer <code>RaptorAIAgent</code>. The old <code>LLMResponseView</code> endpoint is commented out in urls.py. This dead code creates confusion about which pipeline is active.
         </div>
       </div>
@@ -1028,7 +1030,7 @@
         <div class="issue-severity sev-med">MEDIUM</div>
         <div class="issue-text">
           <strong>FalconiumConfig type choices don't match usage.</strong>
-          The model defines types like <code>"frontend_model"</code>, <code>"standard_files_retrieval"</code>, etc. But the chats AI code calls <code>get_active_prompt()</code> with keys like <code>"routing"</code>, <code>"format_retrival_query"</code> â these don't appear in the defined type choices. The lookup relies on a generic query that works despite the mismatch, but it's fragile.
+          The model defines types like <code>"frontend_model"</code>, <code>"standard_files_retrieval"</code>, etc. But the chats AI code calls <code>get_active_prompt()</code> with keys like <code>"routing"</code>, <code>"format_retrival_query"</code> — these don't appear in the defined type choices. The lookup relies on a generic query that works despite the mismatch, but it's fragile.
         </div>
       </div>
 
@@ -1107,10 +1109,10 @@
         <div>&rarr; used by <strong>meetings</strong> (Meeting.project FK)</div>
 
         <div style="color:#f1c40f; font-weight:600;">meetings.pagination</div>
-        <div>&rarr; used by <strong>mails</strong> (EmailPageNumberPagination â oddly defined in meetings, used in mails)</div>
+        <div>&rarr; used by <strong>mails</strong> (EmailPageNumberPagination — oddly defined in meetings, used in mails)</div>
 
         <div style="color:#e67e22; font-weight:600;">mails</div>
-        <div>&rarr; <em style="color:#e67e22;">connects only to accounts (for OAuth tokens) â no other app dependencies</em></div>
+        <div>&rarr; <em style="color:#e67e22;">connects only to accounts (for OAuth tokens) — no other app dependencies</em></div>
       </div>
     </div>
   </div>
