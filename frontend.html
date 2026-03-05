@@ -51,13 +51,19 @@
 
   /* Legend */
   .legend {
-    display: flex;
-    gap: 24px;
-    padding: 14px 40px;
     background: #221a3a;
     border-bottom: 1px solid #3a2f5a;
+    padding: 14px 40px;
+  }
+  .legend-row {
+    display: flex;
+    gap: 24px;
     flex-wrap: wrap;
     align-items: center;
+    margin-bottom: 12px;
+  }
+  .legend-row:last-child {
+    margin-bottom: 0;
   }
   .legend-item {
     display: flex;
@@ -71,6 +77,102 @@
     height: 14px;
     border-radius: 3px;
     flex-shrink: 0;
+  }
+
+  /* Layer filter buttons */
+  .layer-filter {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+  }
+  .layer-filter-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: #9a8fb8;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-right: 4px;
+  }
+  .layer-btn {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 6px 12px;
+    border: 1.5px solid;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    background: transparent;
+    letter-spacing: 0.5px;
+  }
+  .layer-btn-l1 {
+    border-color: #C3A183;
+    color: #C3A183;
+  }
+  .layer-btn-l1:hover:not(.disabled) {
+    background: rgba(195, 161, 131, 0.1);
+  }
+  .layer-btn-l1.active {
+    background: #C3A183;
+    color: #1a1428;
+  }
+  .layer-btn-l2 {
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+  }
+  .layer-btn-l2:hover:not(.disabled) {
+    background: rgba(45, 212, 191, 0.1);
+  }
+  .layer-btn-l2.active {
+    background: #2dd4bf;
+    color: #1a1428;
+  }
+  .layer-btn-l3 {
+    border-color: #7b93db;
+    color: #7b93db;
+  }
+  .layer-btn-l3:hover:not(.disabled) {
+    background: rgba(123, 147, 219, 0.1);
+  }
+  .layer-btn-l3.active {
+    background: #7b93db;
+    color: #1a1428;
+  }
+  .layer-btn.all {
+    border-color: #7a6f98;
+    color: #7a6f98;
+  }
+  .layer-btn.all:hover {
+    background: rgba(122, 111, 152, 0.1);
+  }
+  .layer-btn.all.active {
+    background: #7a6f98;
+    color: #1a1428;
+  }
+  .layer-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+  .layer-btn.disabled:hover {
+    background: transparent !important;
+  }
+  .tooltip {
+    position: relative;
+  }
+  .tooltip:hover::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    bottom: 120%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #2f2348;
+    color: #d0c8e8;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 10px;
+    white-space: nowrap;
+    border: 1px solid #3a2f5a;
+    z-index: 1000;
   }
 
   /* Canvas */
@@ -101,6 +203,20 @@
     z-index: 2;
   }
 
+  /* Layer indicator badge */
+  .layer-badge {
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    color: #1a1428;
+    white-space: nowrap;
+  }
+  .layer-badge.l1 { background: #C3A183; }
+  .layer-badge.l2 { background: #2dd4bf; }
+  .layer-badge.l3 { background: #7b93db; }
+
   /* App boxes */
   .app-box {
     background: #251e40;
@@ -110,6 +226,19 @@
     transition: all 0.2s ease;
     cursor: pointer;
     margin-bottom: 16px;
+    position: relative;
+  }
+  .app-box[data-layer] {
+    border-left: 3px solid;
+  }
+  .app-box[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .app-box[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .app-box[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .app-box:hover {
     border-color: #C3A183;
@@ -121,6 +250,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
   }
   .app-icon {
     width: 32px;
@@ -262,7 +392,24 @@
     padding: 5px 0;
     padding-left: 8px;
     font-size: 11px;
+    transition: opacity 0.2s ease;
   }
+  .service-item[data-layer] {
+    position: relative;
+    padding-left: 18px;
+  }
+  .service-item[data-layer]::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+  }
+  .service-item[data-layer="L1"]::before { background: #C3A183; }
+  .service-item[data-layer="L2"]::before { background: #2dd4bf; }
+  .service-item[data-layer="L3"]::before { background: #7b93db; }
   .service-dot {
     width: 5px;
     height: 5px;
@@ -284,6 +431,19 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    transition: opacity 0.2s ease;
+  }
+  .ext-service[data-layer] {
+    border-left: 3px solid;
+  }
+  .ext-service[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .ext-service[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .ext-service[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .ext-service .svc-icon {
     width: 28px;
@@ -316,6 +476,19 @@
     border-radius: 8px;
     padding: 14px;
     margin-bottom: 14px;
+    transition: opacity 0.2s ease;
+  }
+  .arch-box[data-layer] {
+    border-left: 3px solid;
+  }
+  .arch-box[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .arch-box[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .arch-box[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .arch-box .label {
     font-size: 11px;
@@ -347,6 +520,19 @@
     border: 1px solid #3a2f5a;
     border-radius: 8px;
     overflow: hidden;
+    transition: opacity 0.2s ease;
+  }
+  .api-models-section[data-layer] {
+    border-left: 3px solid;
+  }
+  .api-models-section[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .api-models-section[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .api-models-section[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .api-header {
     padding: 14px 20px;
@@ -374,6 +560,7 @@
     text-align: center;
     min-width: 80px;
     position: relative;
+    transition: opacity 0.2s ease;
   }
   .api-arrow {
     color: #C3A183;
@@ -395,6 +582,7 @@
     font-size: 10px;
     text-align: center;
     color: #b0a8c8;
+    transition: opacity 0.2s ease;
   }
 
   /* Data flow section */
@@ -404,6 +592,19 @@
     border: 1px solid #3a2f5a;
     border-radius: 8px;
     overflow: hidden;
+    transition: opacity 0.2s ease;
+  }
+  .flow-section[data-layer] {
+    border-left: 3px solid;
+  }
+  .flow-section[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .flow-section[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .flow-section[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .flow-header {
     padding: 14px 20px;
@@ -430,6 +631,7 @@
     color: #d0c8e8;
     text-align: center;
     min-width: 100px;
+    transition: opacity 0.2s ease;
   }
   .flow-step.highlight {
     border-color: #C3A183;
@@ -457,6 +659,19 @@
     border: 1px solid #3a2f5a;
     border-radius: 8px;
     overflow: hidden;
+    transition: opacity 0.2s ease;
+  }
+  .network-bar[data-layer] {
+    border-left: 3px solid;
+  }
+  .network-bar[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .network-bar[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .network-bar[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .network-header {
     padding: 14px 20px;
@@ -479,6 +694,19 @@
     border-radius: 6px;
     padding: 12px;
     text-align: center;
+    transition: opacity 0.2s ease;
+  }
+  .net-item[data-layer] {
+    border-left: 3px solid;
+  }
+  .net-item[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .net-item[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .net-item[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .net-icon {
     font-size: 16px;
@@ -509,6 +737,12 @@
   .status-red { color: #e74c3c; }
   .status-blue { color: #3498db; }
 
+  /* Dim effect for layer filtering */
+  [data-layer].dimmed {
+    opacity: 0.15;
+    pointer-events: none;
+  }
+
   /* Responsive */
   @media (max-width: 1400px) {
     .main-grid { grid-template-columns: 1fr; }
@@ -535,21 +769,35 @@
 
 <!-- LEGEND -->
 <div class="legend">
-  <div class="legend-item">
-    <div class="legend-dot" style="background: #2ecc71;"></div>
-    <span>Built & working</span>
+  <!-- Row 1: Status Legend -->
+  <div class="legend-row">
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #2ecc71;"></div>
+      <span>Built & working</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #f39c12;"></div>
+      <span>Partial / needs work</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #e74c3c;"></div>
+      <span>Missing / not implemented</span>
+    </div>
+    <div class="legend-item">
+      <div class="legend-dot" style="background: #3498db;"></div>
+      <span>Planned (future)</span>
+    </div>
   </div>
-  <div class="legend-item">
-    <div class="legend-dot" style="background: #f39c12;"></div>
-    <span>Partial / needs work</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-dot" style="background: #e74c3c;"></div>
-    <span>Missing / not implemented</span>
-  </div>
-  <div class="legend-item">
-    <div class="legend-dot" style="background: #3498db;"></div>
-    <span>Planned (future)</span>
+
+  <!-- Row 2: Layer Filters -->
+  <div class="legend-row">
+    <div class="layer-filter-label">Layer:</div>
+    <div class="layer-filter">
+      <button class="layer-btn layer-btn-l1 disabled tooltip" data-tooltip="No L1 elements on frontend" onclick="filterByLayer('L1', this)">L1 · Skills (Ilya)</button>
+      <button class="layer-btn layer-btn-l2" onclick="filterByLayer('L2', this)">L2 · Harness (Ilya + Claude)</button>
+      <button class="layer-btn layer-btn-l3" onclick="filterByLayer('L3', this)">L3 · Infrastructure (Developers)</button>
+      <button class="layer-btn all active" onclick="filterByLayer('all', this)">All Layers</button>
+    </div>
   </div>
 </div>
 
@@ -562,12 +810,14 @@
     <div>
       <div class="section-title">Architecture Pattern</div>
 
-      <div class="arch-box">
+      <div class="arch-box" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="label">Pattern</div>
         <div class="value">MVVM + Coordinator</div>
       </div>
 
-      <div class="app-box">
+      <div class="app-box" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="app-header">
           <div class="app-icon" style="background: #2f2348;">⬜</div>
           <div>
@@ -586,7 +836,8 @@
         </div>
       </div>
 
-      <div class="arch-box">
+      <div class="arch-box" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="label">Platform</div>
         <div class="value">iPad Pro (M-series)<br/>100% Swift / SwiftUI</div>
       </div>
@@ -597,7 +848,8 @@
       <div class="section-title">Modules & Features</div>
 
       <div class="modules-grid">
-        <div class="app-box">
+        <div class="app-box" data-layer="L3">
+          <div class="layer-badge l3">L3</div>
           <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
             <div class="app-icon" style="background: #2f2348;">📱</div>
             <div>
@@ -620,7 +872,8 @@
           </div>
         </div>
 
-        <div class="app-box">
+        <div class="app-box" data-layer="L3">
+          <div class="layer-badge l3">L3</div>
           <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
             <div class="app-icon" style="background: #2f2348;">⏳</div>
             <div>
@@ -638,7 +891,8 @@
           </div>
         </div>
 
-        <div class="app-box">
+        <div class="app-box" data-layer="L3">
+          <div class="layer-badge l3">L3</div>
           <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
             <div class="app-icon" style="background: #2f2348;">🌳</div>
             <div>
@@ -657,12 +911,13 @@
         </div>
       </div>
 
-      <div class="app-box home-module">
+      <div class="app-box home-module" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
           <div class="app-icon" style="background: #9b59b6;">🏠</div>
           <div style="flex: 1;">
             <div class="app-name">Home Module</div>
-            <div class="app-desc">Main workspace — 18 screens, all core features</div>
+            <div class="app-desc">Main workspace — 17 screens, all core features</div>
           </div>
           <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
         </div>
@@ -766,11 +1021,11 @@
       <div class="services-section">
         <div class="service-category">
           <div class="service-category-title">AI & ML</div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L2">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">AIOrchestrator (routing)</div>
           </div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #f39c12;"></div>
             <div class="service-name">SpeechToTextService</div>
           </div>
@@ -778,15 +1033,15 @@
 
         <div class="service-category">
           <div class="service-category-title">Networking</div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">NetworkService (HTTP)</div>
           </div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">FileDownloader</div>
           </div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">FileStorage (local)</div>
           </div>
@@ -794,15 +1049,15 @@
 
         <div class="service-category">
           <div class="service-category-title">Authentication</div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">TokenService (JWT)</div>
           </div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">MicrosoftAuthManager</div>
           </div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">KeychainService</div>
           </div>
@@ -810,11 +1065,11 @@
 
         <div class="service-category">
           <div class="service-category-title">Audio & Recording</div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">AudioRecordingService</div>
           </div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">RecordingService</div>
           </div>
@@ -822,15 +1077,15 @@
 
         <div class="service-category">
           <div class="service-category-title">UI Support</div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L2">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">LiveMessageWriter</div>
           </div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">KeyboardObserver</div>
           </div>
-          <div class="service-item">
+          <div class="service-item" data-layer="L3">
             <div class="service-dot" style="background: #2ecc71;"></div>
             <div class="service-name">PermissionService</div>
           </div>
@@ -839,7 +1094,8 @@
 
       <div class="section-title">Application Support</div>
 
-      <div class="app-box">
+      <div class="app-box" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="app-body" style="padding: 12px;">
           <div class="component">
             <div class="comp-dot active"></div>
@@ -905,7 +1161,8 @@
     <div>
       <div class="section-title">Backend & Cloud</div>
 
-      <div class="app-box">
+      <div class="app-box" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="app-header">
           <div class="app-icon" style="background: #2f2348;">⚙️</div>
           <div>
@@ -943,7 +1200,7 @@
 
       <div class="section-title">LLM Providers</div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #2f2348;">🧠</div>
         <div class="svc-info">
           <div class="svc-name">Anthropic Claude</div>
@@ -951,7 +1208,7 @@
         </div>
       </div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #2f2348;">🤖</div>
         <div class="svc-info">
           <div class="svc-name">OpenAI GPT-4o</div>
@@ -959,7 +1216,7 @@
         </div>
       </div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #2f2348;">🔍</div>
         <div class="svc-info">
           <div class="svc-name">Perplexity</div>
@@ -969,7 +1226,7 @@
 
       <div class="section-title">On-Device Speech</div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #3498db;">🎤</div>
         <div class="svc-info">
           <div class="svc-name">WhisperKit</div>
@@ -977,7 +1234,7 @@
         </div>
       </div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #3498db;">🔊</div>
         <div class="svc-info">
           <div class="svc-name">FluidAudio</div>
@@ -987,7 +1244,7 @@
 
       <div class="section-title">Cloud Speech (Deprecated)</div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #e74c3c;">🌐</div>
         <div class="svc-info">
           <div class="svc-name">Replicate</div>
@@ -995,7 +1252,7 @@
         </div>
       </div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #e74c3c;">🎙️</div>
         <div class="svc-info">
           <div class="svc-name">ElevenLabs</div>
@@ -1005,7 +1262,7 @@
 
       <div class="section-title">Integration</div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #2f2348;">📤</div>
         <div class="svc-info">
           <div class="svc-name">Microsoft Graph</div>
@@ -1013,7 +1270,7 @@
         </div>
       </div>
 
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
         <div class="svc-icon" style="background: #2f2348;">🗂️</div>
         <div class="svc-info">
           <div class="svc-name">AWS S3</div>
@@ -1025,7 +1282,7 @@
   </div>
 
   <!-- API MODELS SECTION -->
-  <div class="api-models-section">
+  <div class="api-models-section" data-layer="L3">
     <div class="api-header">API Models Flow</div>
     <div class="api-body">
       <div class="api-flow">
@@ -1050,7 +1307,7 @@
   </div>
 
   <!-- DATA FLOW SECTION -->
-  <div class="flow-section">
+  <div class="flow-section" data-layer="L2">
     <div class="flow-header">User Query Data Flow</div>
     <div class="flow-body">
       <div class="flow-row">
@@ -1077,31 +1334,31 @@
   </div>
 
   <!-- NETWORK LAYER SECTION -->
-  <div class="network-bar">
+  <div class="network-bar" data-layer="L3">
     <div class="network-header">Custom Network Layer</div>
     <div class="network-body">
       <div class="network-items">
-        <div class="net-item">
+        <div class="net-item" data-layer="L3">
           <div class="net-icon">⚡</div>
           <div class="net-name">HTTP Stack</div>
           <div class="net-detail">No Alamofire — full control</div>
         </div>
-        <div class="net-item">
+        <div class="net-item" data-layer="L3">
           <div class="net-icon">📦</div>
           <div class="net-name">Request Encoding</div>
           <div class="net-detail">JSON + multipart support</div>
         </div>
-        <div class="net-item">
+        <div class="net-item" data-layer="L3">
           <div class="net-icon">🔄</div>
           <div class="net-name">Retry Logic</div>
           <div class="net-detail">Exponential backoff</div>
         </div>
-        <div class="net-item">
+        <div class="net-item" data-layer="L3">
           <div class="net-icon">🔗</div>
           <div class="net-name">WebSocket Streaming</div>
           <div class="net-detail">Real-time messages</div>
         </div>
-        <div class="net-item">
+        <div class="net-item" data-layer="L3">
           <div class="net-icon">🔐</div>
           <div class="net-name">Header Management</div>
           <div class="net-detail">JWT + OAuth tokens</div>
@@ -1121,6 +1378,33 @@ function toggleBox(header) {
     if (arrow) {
       arrow.classList.toggle('open');
     }
+  }
+}
+
+function filterByLayer(layer, buttonEl) {
+  const buttons = document.querySelectorAll('.layer-btn');
+  const allLayerElements = document.querySelectorAll('[data-layer]');
+
+  // Update button states
+  buttons.forEach(btn => {
+    btn.classList.remove('active');
+  });
+  buttonEl.classList.add('active');
+
+  if (layer === 'all') {
+    // Show all elements
+    allLayerElements.forEach(el => {
+      el.classList.remove('dimmed');
+    });
+  } else {
+    // Dim all elements except the selected layer
+    allLayerElements.forEach(el => {
+      if (el.getAttribute('data-layer') === layer) {
+        el.classList.remove('dimmed');
+      } else {
+        el.classList.add('dimmed');
+      }
+    });
   }
 }
 </script>

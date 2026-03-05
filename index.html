@@ -41,10 +41,15 @@
   /* Legend */
   .legend {
     display: flex;
-    gap: 24px;
-    padding: 14px 40px;
+    flex-direction: column;
+    gap: 16px;
+    padding: 16px 40px;
     background: #221a3a;
     border-bottom: 1px solid #3a2f5a;
+  }
+  .legend-row {
+    display: flex;
+    gap: 24px;
     flex-wrap: wrap;
     align-items: center;
   }
@@ -60,6 +65,69 @@
     height: 14px;
     border-radius: 3px;
     flex-shrink: 0;
+  }
+
+  /* Layer filter buttons */
+  .layer-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 12px;
+    border-radius: 12px;
+    border: 1px solid;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+  }
+  .layer-filter-btn.l1 {
+    border-color: #C3A183;
+    color: #C3A183;
+    background: rgba(195, 161, 131, 0.05);
+  }
+  .layer-filter-btn.l1:hover {
+    background: rgba(195, 161, 131, 0.15);
+  }
+  .layer-filter-btn.l1.active {
+    background: rgba(195, 161, 131, 0.25);
+    box-shadow: 0 0 12px rgba(195, 161, 131, 0.3);
+  }
+  .layer-filter-btn.l2 {
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+    background: rgba(45, 212, 191, 0.05);
+  }
+  .layer-filter-btn.l2:hover {
+    background: rgba(45, 212, 191, 0.15);
+  }
+  .layer-filter-btn.l2.active {
+    background: rgba(45, 212, 191, 0.25);
+    box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
+  }
+  .layer-filter-btn.l3 {
+    border-color: #7b93db;
+    color: #7b93db;
+    background: rgba(123, 147, 219, 0.05);
+  }
+  .layer-filter-btn.l3:hover {
+    background: rgba(123, 147, 219, 0.15);
+  }
+  .layer-filter-btn.l3.active {
+    background: rgba(123, 147, 219, 0.25);
+    box-shadow: 0 0 12px rgba(123, 147, 219, 0.3);
+  }
+  .layer-filter-btn.reset {
+    border-color: #7a6f98;
+    color: #b0a8c8;
+    background: rgba(122, 111, 152, 0.05);
+  }
+  .layer-filter-btn.reset:hover {
+    background: rgba(122, 111, 152, 0.15);
+  }
+  .layer-filter-btn.reset.active {
+    background: rgba(122, 111, 152, 0.25);
+    box-shadow: 0 0 12px rgba(122, 111, 152, 0.3);
   }
 
   /* Canvas */
@@ -109,6 +177,19 @@
     overflow: hidden;
     transition: all 0.2s ease;
     cursor: pointer;
+    position: relative;
+  }
+  .app-box[data-layer] {
+    border-left-width: 3px !important;
+  }
+  .app-box[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .app-box[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .app-box[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .app-box:hover {
     border-color: #C3A183;
@@ -130,16 +211,42 @@
     background: rgba(230, 126, 34, 0.15);
     padding: 2px 6px;
     border-radius: 3px;
+    z-index: 10;
   }
   .app-box.has-issues {
     border-left: 3px solid #e74c3c;
   }
+
+  /* Layer badges */
+  .layer-badge {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    padding: 2px 7px;
+    border-radius: 10px;
+    color: #1a1428;
+    z-index: 11;
+  }
+  .layer-badge.l1 {
+    background: #C3A183;
+  }
+  .layer-badge.l2 {
+    background: #2dd4bf;
+  }
+  .layer-badge.l3 {
+    background: #7b93db;
+  }
+
   .app-header {
     padding: 14px 16px 10px;
     border-bottom: 1px solid #3a2f5a;
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
   }
   .app-icon {
     width: 32px;
@@ -177,6 +284,10 @@
     padding: 6px 0;
     border-bottom: 1px solid #2f2650;
     font-size: 12px;
+    position: relative;
+  }
+  .component[data-layer] {
+    /* Components can have their own layer indicators */
   }
   .component:last-child { border-bottom: none; }
   .comp-dot {
@@ -215,6 +326,22 @@
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
+    transition: opacity 0.2s ease;
+  }
+  .ext-service[data-layer] {
+    border-left-width: 3px;
+    border-left-style: solid;
+    padding-left: 11px;
+  }
+  .ext-service[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .ext-service[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .ext-service[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .ext-service .svc-icon {
     width: 28px;
@@ -244,6 +371,15 @@
     border-radius: 8px;
     padding: 20px;
     text-align: center;
+    position: relative;
+  }
+  .client-box[data-layer] {
+    border-left-width: 3px;
+    border-left-style: solid;
+  }
+  .client-box[data-layer="L3"] {
+    border-left-color: #7b93db;
+    border-left-width: 3px;
   }
   .client-box .icon {
     font-size: 36px;
@@ -332,6 +468,16 @@
     border-radius: 6px;
     padding: 14px;
     text-align: center;
+    position: relative;
+    transition: opacity 0.2s ease;
+  }
+  .infra-item[data-layer] {
+    border-left-width: 3px;
+    border-left-style: solid;
+    padding-left: 11px;
+  }
+  .infra-item[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .infra-item .infra-icon {
     font-size: 20px;
@@ -370,6 +516,10 @@
   /* Data flow section */
   .flow-section {
     margin-top: 30px;
+    position: relative;
+  }
+  .flow-section[data-layer] {
+    transition: opacity 0.2s ease;
   }
   .flow-row {
     display: flex;
@@ -387,6 +537,19 @@
     text-align: center;
     min-width: 120px;
     position: relative;
+    transition: opacity 0.2s ease;
+  }
+  .flow-step[data-layer] {
+    border-left-width: 3px !important;
+  }
+  .flow-step[data-layer="L1"] {
+    border-left-color: #C3A183;
+  }
+  .flow-step[data-layer="L2"] {
+    border-left-color: #2dd4bf;
+  }
+  .flow-step[data-layer="L3"] {
+    border-left-color: #7b93db;
   }
   .flow-step .step-label {
     font-size: 9px;
@@ -436,6 +599,12 @@
     margin-left: 4px;
   }
 
+  /* Fade effect for filtered elements */
+  [data-layer].layer-dimmed {
+    opacity: 0.15 !important;
+    pointer-events: none;
+  }
+
   /* Responsive */
   @media (max-width: 1200px) {
     .main-grid { grid-template-columns: 1fr; }
@@ -455,19 +624,31 @@
 <div class="header">
   <div>
     <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
-    <div class="subtitle">Live system map — derived from codebase analysis</div>
+    <div class="subtitle">Live system map &mdash; derived from codebase analysis</div>
   </div>
   <div class="date">Generated 4 March 2026 &middot; Django 5.0.6</div>
 </div>
 
 <!-- LEGEND -->
 <div class="legend">
-  <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div> Built & working</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div> Partial / needs work</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Missing / not implemented</div>
-  <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Planned (future)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:transparent; border: 2px dashed #e67e22;"></div> Island (disconnected)</div>
-  <div class="legend-item"><div class="legend-dot" style="background:transparent; border-left: 3px solid #e74c3c;"></div> Has issues</div>
+  <!-- Status legend row -->
+  <div class="legend-row">
+    <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div> Built & working</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div> Partial / needs work</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Missing / not implemented</div>
+    <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Planned (future)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:transparent; border: 2px dashed #e67e22;"></div> Island (disconnected)</div>
+    <div class="legend-item"><div class="legend-dot" style="background:transparent; border-left: 3px solid #e74c3c;"></div> Has issues</div>
+  </div>
+
+  <!-- Layer filter row -->
+  <div class="legend-row">
+    <span style="font-size:11px; color:#7a6f98; font-weight:600; text-transform:uppercase; letter-spacing:1px;">Filter by Layer:</span>
+    <button class="layer-filter-btn reset active" onclick="filterByLayer(null)">All Layers</button>
+    <button class="layer-filter-btn l1" onclick="filterByLayer('L1')">L1 · Skills (Ilya)</button>
+    <button class="layer-filter-btn l2" onclick="filterByLayer('L2')">L2 · Harness (Ilya + Claude)</button>
+    <button class="layer-filter-btn l3" onclick="filterByLayer('L3')">L3 · Infrastructure (Developers)</button>
+  </div>
 </div>
 
 <!-- MAIN CANVAS -->
@@ -478,7 +659,8 @@
     <!-- LEFT: CLIENT -->
     <div>
       <div class="section-title">Client</div>
-      <div class="client-box" style="margin-bottom: 20px;">
+      <div class="client-box" style="margin-bottom: 20px;" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="icon">&#x1F4F1;</div>
         <div class="label">iPad App</div>
         <div class="sub">Swift / SwiftUI / MVVM</div>
@@ -490,7 +672,8 @@
       </div>
 
       <div class="section-title" style="margin-top:30px;">Orchestration</div>
-      <div class="ext-service" style="border-color:#e67e22; border-style:dashed;">
+      <div class="ext-service" style="border-color:#e67e22; border-style:dashed;" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">n8n</div>
         <div>
           <div class="svc-name">n8n Workflows</div>
@@ -500,7 +683,8 @@
       </div>
 
       <div class="section-title" style="margin-top:30px;">Not Implemented</div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;">
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;" data-layer="L2">
+        <div class="layer-badge l2">L2</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Ed</div>
         <div>
           <div class="svc-name">Edge Orchestrator</div>
@@ -508,7 +692,8 @@
           <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Future — not for MVP</div>
         </div>
       </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;">
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;" data-layer="L2">
+        <div class="layer-badge l2">L2</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">An</div>
         <div>
           <div class="svc-name">Anonymisation</div>
@@ -516,7 +701,8 @@
           <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Designed, not coded</div>
         </div>
       </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;">
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;" data-layer="L2">
+        <div class="layer-badge l2">L2</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Em</div>
         <div>
           <div class="svc-name">Emotion Engine</div>
@@ -533,7 +719,8 @@
       <div class="backend-grid">
 
         <!-- ACCOUNTS -->
-        <div class="app-box" onclick="toggleApp(this)">
+        <div class="app-box" onclick="toggleApp(this)" data-layer="L3">
+          <div class="layer-badge l3">L3</div>
           <div class="app-header">
             <div class="app-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Ac</div>
             <div>
@@ -543,27 +730,27 @@
             <span class="toggle-arrow open">&#9660;</span>
           </div>
           <div class="app-body">
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">User model (email-based auth)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">JWT login + token refresh <span class="endpoint-badge">5 endpoints</span></div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Outlook OAuth token storage</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot partial"></div>
               <div class="comp-name">Password reset (sends to admins, not user)</div>
               <div class="comp-status status-partial">issue</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot partial"></div>
               <div class="comp-name">Celery task decorators commented out</div>
               <div class="comp-status status-partial">issue</div>
@@ -572,7 +759,8 @@
         </div>
 
         <!-- CHATS -->
-        <div class="app-box has-issues" onclick="toggleApp(this)">
+        <div class="app-box has-issues" onclick="toggleApp(this)" data-layer="L2">
+          <div class="layer-badge l2">L2</div>
           <div class="app-header">
             <div class="app-icon" style="background:rgba(155,89,182,0.2); color:#9b59b6;">Ch</div>
             <div>
@@ -582,42 +770,42 @@
             <span class="toggle-arrow open">&#9660;</span>
           </div>
           <div class="app-body">
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Conversations & Messages CRUD <span class="endpoint-badge">8 endpoints</span></div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">RAPTOR hierarchical retrieval (LLMRaptorView)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">Query routing (Claude &rarr; classify)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">General Q&A chain (Claude)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">Internet search chain (Perplexity)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">WebSocket audio transcription</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">QuestionLLM audit logging</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot partial"></div>
               <div class="comp-name">Old AIAgent (routing) &mdash; dead code alongside RAPTOR</div>
               <div class="comp-status status-partial">redundant</div>
@@ -626,7 +814,8 @@
         </div>
 
         <!-- SERVICES -->
-        <div class="app-box" onclick="toggleApp(this)">
+        <div class="app-box" onclick="toggleApp(this)" data-layer="L2">
+          <div class="layer-badge l2">L2</div>
           <div class="app-header">
             <div class="app-icon" style="background:rgba(46,204,113,0.2); color:#2ecc71;">Sv</div>
             <div>
@@ -636,37 +825,37 @@
             <span class="toggle-arrow open">&#9660;</span>
           </div>
           <div class="app-body">
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Projects + Tasks + SubTasks <span class="endpoint-badge">18 endpoints</span></div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">File upload + folder hierarchy</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">RAPTOR indexing pipeline (Celery)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">FalconiumConfig (prompt management)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">PromptSetting (RAG tuning)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Documents (system/internal) admin-managed</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Auto-creates project directory (signal)</div>
               <div class="comp-status status-built">built</div>
@@ -675,7 +864,8 @@
         </div>
 
         <!-- MAILS -->
-        <div class="app-box island" onclick="toggleApp(this)">
+        <div class="app-box island" onclick="toggleApp(this)" data-layer="L3">
+          <div class="layer-badge l3">L3</div>
           <div class="app-header">
             <div class="app-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">Ma</div>
             <div>
@@ -685,32 +875,32 @@
             <span class="toggle-arrow open">&#9660;</span>
           </div>
           <div class="app-body">
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">OAuth callback + logout <span class="endpoint-badge">18 endpoints</span></div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Inbox / Sent / Detail fetch</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Send, reply, reply-all, forward</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Bulk ops (delete, flag, read, importance)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot missing"></div>
               <div class="comp-name">No local models &mdash; fully stateless</div>
               <div class="comp-status status-missing">no data</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot missing"></div>
               <div class="comp-name">Emails not indexed in Weaviate / not searchable by AI</div>
               <div class="comp-status status-missing">gap</div>
@@ -719,7 +909,8 @@
         </div>
 
         <!-- MEETINGS -->
-        <div class="app-box island" onclick="toggleApp(this)">
+        <div class="app-box island" onclick="toggleApp(this)" data-layer="L3">
+          <div class="layer-badge l3">L3</div>
           <div class="app-header">
             <div class="app-icon" style="background:rgba(241,196,15,0.2); color:#f1c40f;">Mt</div>
             <div>
@@ -729,32 +920,32 @@
             <span class="toggle-arrow open">&#9660;</span>
           </div>
           <div class="app-body">
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Meeting CRUD + participants <span class="endpoint-badge">9 endpoints</span></div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Meeting messages (speaker-attributed)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Meeting tasks + subtasks + attachments</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">Parts &amp; roles per meeting</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot partial"></div>
               <div class="comp-name">Transcript field exists but not indexed for RAG</div>
               <div class="comp-status status-partial">gap</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot missing"></div>
               <div class="comp-name">No auto-task generation from transcripts</div>
               <div class="comp-status status-missing">planned</div>
@@ -763,7 +954,8 @@
         </div>
 
         <!-- MCP SERVER -->
-        <div class="app-box has-issues" onclick="toggleApp(this)">
+        <div class="app-box has-issues" onclick="toggleApp(this)" data-layer="L2">
+          <div class="layer-badge l2">L2</div>
           <div class="app-header">
             <div class="app-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">MC</div>
             <div>
@@ -773,27 +965,27 @@
             <span class="toggle-arrow open">&#9660;</span>
           </div>
           <div class="app-body">
-            <div class="component">
+            <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
               <div class="comp-name">JSON-RPC endpoint <span class="endpoint-badge">1 endpoint</span></div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">6 MCP tools (docs, search, Q&A, list)</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
               <div class="comp-name">MCPToolConfig admin-managed registry</div>
               <div class="comp-status status-built">built</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot partial"></div>
               <div class="comp-name">Duplicates RAPTOR agents from chats app</div>
               <div class="comp-status status-partial">duplication</div>
             </div>
-            <div class="component">
+            <div class="component" data-layer="L2">
               <div class="comp-dot partial"></div>
               <div class="comp-name">Separate Weaviate classes (RAPTORNode vs External_documents)</div>
               <div class="comp-status status-partial">split</div>
@@ -804,20 +996,20 @@
       </div>
 
       <!-- DATA FLOW: QUERY PIPELINE -->
-      <div class="flow-section">
+      <div class="flow-section" data-layer="L2">
         <div class="section-title">Query Pipeline &mdash; What happens when you ask Falconium a question</div>
         <div class="flow-row">
-          <div class="flow-step">
+          <div class="flow-step" data-layer="L3">
             <div class="step-label">Input</div>
             iPad sends text
           </div>
           <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step highlight">
+          <div class="flow-step highlight" data-layer="L2">
             <div class="step-label">Router</div>
             Claude classifies query
           </div>
           <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step decision">
+          <div class="flow-step decision" data-layer="L2">
             <div class="step-label">Decision</div>
             Route to&hellip;
           </div>
@@ -834,30 +1026,30 @@
       </div>
 
       <!-- DATA FLOW: DOCUMENT INDEXING -->
-      <div class="flow-section" style="margin-top:24px;">
+      <div class="flow-section" style="margin-top:24px;" data-layer="L2">
         <div class="section-title">Document Indexing Pipeline</div>
         <div class="flow-row">
-          <div class="flow-step">
+          <div class="flow-step" data-layer="L3">
             <div class="step-label">Upload</div>
             File uploaded via API or admin
           </div>
           <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step">
+          <div class="flow-step" data-layer="L3">
             <div class="step-label">Extract</div>
             PDF / DOCX / TXT &rarr; text
           </div>
           <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step">
+          <div class="flow-step" data-layer="L3">
             <div class="step-label">Chunk</div>
             512 tokens, 50 overlap
           </div>
           <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step highlight">
+          <div class="flow-step highlight" data-layer="L2">
             <div class="step-label">RAPTOR</div>
             Build hierarchy tree (GMM clusters &rarr; summaries)
           </div>
           <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step">
+          <div class="flow-step" data-layer="L3">
             <div class="step-label">Index</div>
             Store in Weaviate
           </div>
@@ -877,7 +1069,8 @@
       <div class="section-title">External Services</div>
 
       <div style="font-size:10px; color:#7a6f98; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase;">LLM Providers</div>
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(155,89,182,0.2); color:#9b59b6;">Cl</div>
         <div>
           <div class="svc-name">Anthropic Claude</div>
@@ -885,7 +1078,8 @@
           <div style="font-size:10px; color:#5a5080; margin-top:2px;">claude-3-5-haiku-latest</div>
         </div>
       </div>
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(46,204,113,0.2); color:#2ecc71;">OA</div>
         <div>
           <div class="svc-name">OpenAI</div>
@@ -893,7 +1087,8 @@
           <div style="font-size:10px; color:#5a5080; margin-top:2px;">text-embedding-ada-002 &middot; gpt-4o-mini</div>
         </div>
       </div>
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Px</div>
         <div>
           <div class="svc-name">Perplexity</div>
@@ -903,21 +1098,24 @@
       </div>
 
       <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Audio & Voice</div>
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Gr</div>
         <div>
           <div class="svc-name">Groq</div>
           <div class="svc-role">Fast Whisper transcription</div>
         </div>
       </div>
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(241,196,15,0.2); color:#f1c40f;">Re</div>
         <div>
           <div class="svc-name">Replicate</div>
           <div class="svc-role">WhisperX + speaker diarisation</div>
         </div>
       </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.5;">
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.5;" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">11</div>
         <div>
           <div class="svc-name">ElevenLabs</div>
@@ -927,7 +1125,8 @@
       </div>
 
       <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Integrations</div>
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">MS</div>
         <div>
           <div class="svc-name">Microsoft Graph</div>
@@ -936,14 +1135,16 @@
       </div>
 
       <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Storage & Data</div>
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">S3</div>
         <div>
           <div class="svc-name">AWS S3</div>
           <div class="svc-role">File storage (production)</div>
         </div>
       </div>
-      <div class="ext-service">
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">Wv</div>
         <div>
           <div class="svc-name">Weaviate</div>
@@ -958,27 +1159,32 @@
   <div style="margin-top:30px;">
     <div class="section-title">Infrastructure Layer</div>
     <div class="infra-bar">
-      <div class="infra-item">
+      <div class="infra-item" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="infra-icon">&#x1F418;</div>
         <div class="infra-name">PostgreSQL 14.1</div>
         <div class="infra-detail">Primary database</div>
       </div>
-      <div class="infra-item">
+      <div class="infra-item" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="infra-icon">&#9889;</div>
         <div class="infra-name">Redis</div>
         <div class="infra-detail">Cache + message broker</div>
       </div>
-      <div class="infra-item">
+      <div class="infra-item" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="infra-icon">&#x1F504;</div>
         <div class="infra-name">Celery</div>
         <div class="infra-detail">Background task queue</div>
       </div>
-      <div class="infra-item">
+      <div class="infra-item" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="infra-icon">&#x1F433;</div>
         <div class="infra-name">Docker</div>
         <div class="infra-detail">Containerised (7 services)</div>
       </div>
-      <div class="infra-item">
+      <div class="infra-item" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="infra-icon">&#x1F680;</div>
         <div class="infra-name">Daphne (ASGI)</div>
         <div class="infra-detail">HTTP + WebSocket server</div>
@@ -1120,6 +1326,8 @@
 </div>
 
 <script>
+let currentLayerFilter = null;
+
 function toggleApp(el) {
   const body = el.querySelector('.app-body');
   const arrow = el.querySelector('.toggle-arrow');
@@ -1143,6 +1351,39 @@ function toggleIssues() {
     arrow.classList.remove('open');
   }
 }
+
+function filterByLayer(layer) {
+  currentLayerFilter = layer;
+
+  // Update button states
+  const buttons = document.querySelectorAll('.layer-filter-btn');
+  buttons.forEach(btn => btn.classList.remove('active'));
+
+  if (layer === null) {
+    document.querySelector('.layer-filter-btn.reset').classList.add('active');
+    // Remove dimming from all elements
+    document.querySelectorAll('[data-layer]').forEach(el => {
+      el.classList.remove('layer-dimmed');
+    });
+  } else {
+    // Add active class to the clicked button
+    document.querySelector(`.layer-filter-btn.${layer.toLowerCase()}`).classList.add('active');
+
+    // Dim all elements that don't match the selected layer
+    document.querySelectorAll('[data-layer]').forEach(el => {
+      if (el.getAttribute('data-layer') !== layer) {
+        el.classList.add('layer-dimmed');
+      } else {
+        el.classList.remove('layer-dimmed');
+      }
+    });
+  }
+}
+
+// Initialize with all layers visible
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelector('.layer-filter-btn.reset').classList.add('active');
+});
 </script>
 
 </body>
