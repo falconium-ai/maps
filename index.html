@@ -624,9 +624,9 @@
 <div class="header">
   <div>
     <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
-    <div class="subtitle">Live system map &mdash; derived from codebase analysis</div>
+    <div class="subtitle">Live system map &mdash; FalcoMain StepGraph live, FalcoDocs Python ingest cut over from n8n</div>
   </div>
-  <div class="date">Generated 4 March 2026 &middot; Django 5.0.6</div>
+  <div class="date">Updated 13 May 2026 &middot; Django 5.0.6 &middot; London EC2 (eu-west-2)</div>
 </div>
 
 <!-- LEGEND -->
@@ -671,43 +671,66 @@
         </div>
       </div>
 
-      <div class="section-title" style="margin-top:30px;">Orchestration</div>
-      <div class="ext-service" style="border-color:#e67e22; border-style:dashed;" data-layer="L3">
+      <div class="section-title" style="margin-top:30px;">n8n &mdash; forwarder only</div>
+      <div class="ext-service" data-layer="L3">
         <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">n8n</div>
+        <div class="svc-icon" style="background:rgba(195,161,131,0.2); color:#C3A183;">n8n</div>
         <div>
-          <div class="svc-name">n8n Workflows</div>
-          <div class="svc-role">Agent orchestration (MVP)</div>
-          <div style="font-size:9px; color:#e67e22; margin-top:3px;">NOT in backend code</div>
+          <div class="svc-name">MAIN_AGENT Falconium</div>
+          <div class="svc-role">3-node forwarder &rarr; Django</div>
+          <div style="font-size:9px; color:#C3A183; margin-top:3px;">Webhook &rarr; ForwarderToFalcoMain &rarr; Respond</div>
         </div>
       </div>
+      <div style="font-size:10px; color:#7a6f98; margin-top:6px; line-height:1.5;">
+        Active: <strong style="color:#C3A183;">MAIN_AGENT Falconium</strong>, <strong style="color:#a77fc7;">Memory</strong> (audit pending).<br>
+        Deactivated: <strong>Ingest</strong> (2026-05-12) &middot; <strong>FalcoEmotions</strong> (no callers).<br>
+        Inactive backup: <strong>MAIN_AGENT_Falconium [BACKUP pre-rebuild]</strong>.
+      </div>
 
-      <div class="section-title" style="margin-top:30px;">Not Implemented</div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;" data-layer="L2">
+      <div class="section-title" style="margin-top:30px;">Future / Seams</div>
+      <div class="ext-service" style="border-color:#3498db; opacity:0.7;" data-layer="L2">
+        <div class="layer-badge l2">L2</div>
+        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">An</div>
+        <div>
+          <div class="svc-name">Anonymisation</div>
+          <div class="svc-role">PII / sensitive masking &middot; §9</div>
+          <div style="font-size:9px; color:#3498db; margin-top:3px;">Steps 03 &amp; 11 are pass-through stubs; chokepoint position locked</div>
+        </div>
+      </div>
+      <div class="ext-service" style="border-color:#3498db; opacity:0.7;" data-layer="L2">
+        <div class="layer-badge l2">L2</div>
+        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">FJ</div>
+        <div>
+          <div class="svc-name">FalcoJudge / Verify</div>
+          <div class="svc-role">Multi-agent verification &middot; §6</div>
+          <div style="font-size:9px; color:#3498db; margin-top:3px;">Step 10 pass-through; different vendor than drafter (planned)</div>
+        </div>
+      </div>
+      <div class="ext-service" style="border-color:#3498db; opacity:0.7;" data-layer="L2">
+        <div class="layer-badge l2">L2</div>
+        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">FM</div>
+        <div>
+          <div class="svc-name">FalcoMath / Branch D</div>
+          <div class="svc-role">Numerical reasoning &middot; §5</div>
+          <div style="font-size:9px; color:#3498db; margin-top:3px;">D-classified queries downgrade to Branch A today</div>
+        </div>
+      </div>
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.55;" data-layer="L2">
         <div class="layer-badge l2">L2</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Ed</div>
         <div>
           <div class="svc-name">Edge Orchestrator</div>
           <div class="svc-role">On-device Llama 3.5</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Future — not for MVP</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Future, not for MVP &mdash; n8n forwarder serves this role today</div>
         </div>
       </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;" data-layer="L2">
-        <div class="layer-badge l2">L2</div>
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">An</div>
-        <div>
-          <div class="svc-name">Anonymisation</div>
-          <div class="svc-role">PII/sensitive data masking</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Designed, not coded</div>
-        </div>
-      </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.6;" data-layer="L2">
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.55;" data-layer="L2">
         <div class="layer-badge l2">L2</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Em</div>
         <div>
           <div class="svc-name">Emotion Engine</div>
           <div class="svc-role">13-state tone adaptation</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Prompts exist, no backend logic</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">FalcoEmotions n8n workflow stranded (no callers) &middot; rebuild as StepGraph step when iPad consumes it</div>
         </div>
       </div>
     </div>
@@ -776,24 +799,24 @@
               <div class="comp-status status-built">built</div>
             </div>
             <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">RAPTOR hierarchical retrieval (LLMRaptorView)</div>
-              <div class="comp-status status-built">built</div>
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">RAPTOR hierarchical retrieval (LLMRaptorView) &mdash; superseded by <code>agents/falco_docs</code></div>
+              <div class="comp-status status-partial">legacy</div>
             </div>
             <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Query routing (Claude &rarr; classify)</div>
-              <div class="comp-status status-built">built</div>
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Query routing (Claude &rarr; classify) &mdash; superseded by FalcoMain StepGraph</div>
+              <div class="comp-status status-partial">legacy</div>
             </div>
             <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">General Q&A chain (Claude)</div>
-              <div class="comp-status status-built">built</div>
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">General Q&A chain (Claude) &mdash; superseded by FalcoMain Branch A</div>
+              <div class="comp-status status-partial">legacy</div>
             </div>
             <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Internet search chain (Perplexity)</div>
-              <div class="comp-status status-built">built</div>
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Internet search chain (Perplexity) &mdash; superseded by FalcoMain Branch C</div>
+              <div class="comp-status status-partial">legacy</div>
             </div>
             <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
@@ -802,13 +825,13 @@
             </div>
             <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
-              <div class="comp-name">QuestionLLM audit logging</div>
+              <div class="comp-name">QuestionLLM audit logging &mdash; supplemented by <code>agent_runs</code> + <code>agent_run_steps</code></div>
               <div class="comp-status status-built">built</div>
             </div>
             <div class="component" data-layer="L2">
               <div class="comp-dot partial"></div>
-              <div class="comp-name">Old AIAgent (routing) &mdash; dead code alongside RAPTOR</div>
-              <div class="comp-status status-partial">redundant</div>
+              <div class="comp-name">Old AIAgent (routing) &mdash; dead code, queued for removal</div>
+              <div class="comp-status status-partial">cleanup</div>
             </div>
           </div>
         </div>
@@ -836,19 +859,19 @@
               <div class="comp-status status-built">built</div>
             </div>
             <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">RAPTOR indexing pipeline (Celery)</div>
-              <div class="comp-status status-built">built</div>
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">RAPTOR indexing pipeline (Celery) &mdash; superseded by <code>agents/falco_docs</code> Python ingest</div>
+              <div class="comp-status status-partial">legacy</div>
             </div>
             <div class="component" data-layer="L2">
               <div class="comp-dot active"></div>
-              <div class="comp-name">FalconiumConfig (prompt management)</div>
-              <div class="comp-status status-built">built</div>
+              <div class="comp-name">FalconiumConfig (prompt management) &mdash; legacy prompts; FalcoMain uses <code>persona.py</code></div>
+              <div class="comp-status status-partial">legacy</div>
             </div>
             <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">PromptSetting (RAG tuning)</div>
-              <div class="comp-status status-built">built</div>
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">PromptSetting (RAG tuning) &mdash; legacy</div>
+              <div class="comp-status status-partial">legacy</div>
             </div>
             <div class="component" data-layer="L3">
               <div class="comp-dot active"></div>
@@ -982,13 +1005,118 @@
             </div>
             <div class="component" data-layer="L2">
               <div class="comp-dot partial"></div>
-              <div class="comp-name">Duplicates RAPTOR agents from chats app</div>
-              <div class="comp-status status-partial">duplication</div>
+              <div class="comp-name">Duplicates RAPTOR agents from chats app &mdash; both queued for removal</div>
+              <div class="comp-status status-partial">cleanup</div>
             </div>
             <div class="component" data-layer="L2">
               <div class="comp-dot partial"></div>
-              <div class="comp-name">Separate Weaviate classes (RAPTORNode vs External_documents)</div>
-              <div class="comp-status status-partial">split</div>
+              <div class="comp-name">Separate Weaviate classes (RAPTORNode vs External_documents) &mdash; Weaviate itself is legacy</div>
+              <div class="comp-status status-partial">legacy</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AGENTS — NEW APP HOUSING FALCO_MAIN + FALCO_DOCS -->
+        <div class="app-box" onclick="toggleApp(this)" data-layer="L2">
+          <div class="layer-badge l2">L2</div>
+          <div class="app-header">
+            <div class="app-icon" style="background:rgba(195,161,131,0.2); color:#C3A183;">Ag</div>
+            <div>
+              <div class="app-name">agents</div>
+              <div class="app-desc">FalcoMain StepGraph + FalcoDocs Python ingest</div>
+            </div>
+            <span class="toggle-arrow open">&#9660;</span>
+          </div>
+          <div class="app-body">
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">StepGraph runner (<code>runner/</code>) &mdash; 14 named steps, deterministic replay, contextvars trace</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">FalcoMain endpoint <span class="endpoint-badge">POST /api/v1/agents/falco/main/</span></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Drafter LLM (<code>llm/drafter.py</code>) &mdash; Groq <code>qwen/qwen3-32b</code>, <code>&lt;think&gt;</code> stripping</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Route step (<code>steps/s05_route.py</code>) &mdash; branches A / B / C live; D downgrades to A</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Branch B (<code>falco_docs/search.py</code>) &mdash; Neo4j vector search, atoms formatted with bracket citations</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Branch C (<code>tools/web_search.py</code>) &mdash; Perplexity <code>sonar</code>, 20s timeout</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">FalcoDocs Python ingest (<code>falco_docs/{pdf,extraction,writer,ingest}.py</code>) &mdash; Haiku 4.5 native PDF, prompt-cached system prompt, Neo4j UNWIND</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Admin upload form <span class="endpoint-badge">/admin/ingest/</span> + CLI <code>manage.py ingest_pdf</code></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Anonymisation step (<code>s03_anonymise</code>) &mdash; pass-through stub; §9 chokepoint position locked</div>
+              <div class="comp-status status-partial">seam</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">Verify step (<code>s10_verify</code>) &mdash; pass-through stub; FalcoJudge seam</div>
+              <div class="comp-status status-partial">seam</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot missing"></div>
+              <div class="comp-name">Branch D (calculation tool) &mdash; not implemented; D queries downgrade to Branch A today</div>
+              <div class="comp-status status-missing">planned</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- MEMORY — NEW APP -->
+        <div class="app-box" onclick="toggleApp(this)" data-layer="L2">
+          <div class="layer-badge l2">L2</div>
+          <div class="app-header">
+            <div class="app-icon" style="background:rgba(167,127,199,0.2); color:#a77fc7;">Me</div>
+            <div>
+              <div class="app-name">memory</div>
+              <div class="app-desc">User memory profile + daily logs</div>
+            </div>
+            <span class="toggle-arrow open">&#9660;</span>
+          </div>
+          <div class="app-body">
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Models: <code>UserMemoryProfile</code>, <code>DailyLog</code></div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Read path: <code>reader.load_for_session()</code> &mdash; hydrate on Step 02</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot active"></div>
+              <div class="comp-name">Write path: <code>tasks.extract_and_update_memory</code> Celery task &mdash; dispatched on Step 14</div>
+              <div class="comp-status status-built">built</div>
+            </div>
+            <div class="component" data-layer="L2">
+              <div class="comp-dot partial"></div>
+              <div class="comp-name">n8n-era Supabase Memory workflow still active &mdash; investigation pending, likely orphan</div>
+              <div class="comp-status status-partial">audit</div>
             </div>
           </div>
         </div>
@@ -997,68 +1125,107 @@
 
       <!-- DATA FLOW: QUERY PIPELINE -->
       <div class="flow-section" data-layer="L2">
-        <div class="section-title">Query Pipeline &mdash; What happens when you ask Falconium a question</div>
+        <div class="section-title">Query Pipeline &mdash; FalcoMain 14-step StepGraph</div>
         <div class="flow-row">
           <div class="flow-step" data-layer="L3">
             <div class="step-label">Input</div>
-            iPad sends text
+            iPad &rarr; n8n forwarder
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step" data-layer="L2">
+            <div class="step-label">01&ndash;04</div>
+            Receive &middot; Hydrate memory &middot; Anonymise (seam) &middot; Classify intent
           </div>
           <div class="flow-arrow">&rarr;</div>
           <div class="flow-step highlight" data-layer="L2">
-            <div class="step-label">Router</div>
-            Claude classifies query
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step decision" data-layer="L2">
-            <div class="step-label">Decision</div>
-            Route to&hellip;
+            <div class="step-label">05 Route</div>
+            Branch A / B / C / (D&rarr;A)
           </div>
           <div class="flow-arrow">&rarr;</div>
           <div class="flow-branch">
-            <div class="flow-branch-item">&#x1F4DA; <strong>Document retrieval</strong> &rarr; RAPTOR &rarr; Weaviate &rarr; Claude synthesises</div>
-            <div class="flow-branch-item">&#x1F310; <strong>Internet search</strong> &rarr; Perplexity sonar-pro &rarr; answer</div>
-            <div class="flow-branch-item">&#x1F4AC; <strong>General Q&A</strong> &rarr; Claude direct &rarr; answer</div>
+            <div class="flow-branch-item">&#x1F464; <strong>A &middot; Persona</strong> &rarr; Groq qwen3-32b drafter</div>
+            <div class="flow-branch-item">&#x1F4DA; <strong>B &middot; Documents</strong> &rarr; OpenAI embed &rarr; Neo4j vector search &rarr; atoms cited <code>[1] [2]</code> &rarr; drafter</div>
+            <div class="flow-branch-item">&#x1F310; <strong>C &middot; Web</strong> &rarr; Perplexity sonar (20s timeout) &rarr; drafter</div>
+            <div class="flow-branch-item" style="opacity:0.55;">&#x1F4CA; <strong>D &middot; Calc</strong> &rarr; not implemented; downgrades to A</div>
           </div>
         </div>
-        <div style="font-size:11px; color:#7a6f98; margin-top:8px; padding-left:4px;">
-          All queries logged to <strong style="color:#9b59b6;">QuestionLLM</strong> audit table &middot; Prompts loaded from <strong style="color:#2ecc71;">FalconiumConfig</strong>
+        <div class="flow-row" style="margin-top:14px;">
+          <div class="flow-step" data-layer="L2">
+            <div class="step-label">10&ndash;14</div>
+            Verify (seam) &middot; De-anonymise (seam) &middot; Persist &middot; Respond &middot; Memory write (Celery)
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step" data-layer="L3">
+            <div class="step-label">Output</div>
+            <code>[{"output":"..."}]</code> back to iPad
+          </div>
+        </div>
+        <div style="font-size:11px; color:#7a6f98; margin-top:10px; padding-left:4px;">
+          Every run persists to <strong style="color:#C3A183;">agent_runs</strong> + <strong style="color:#C3A183;">agent_run_steps</strong> with <code>trace_id</code> via contextvars &middot; <code>manage.py replay_run &lt;id&gt;</code> for deterministic replay &middot; typical wall-clock 2&ndash;3s
         </div>
       </div>
 
       <!-- DATA FLOW: DOCUMENT INDEXING -->
       <div class="flow-section" style="margin-top:24px;" data-layer="L2">
-        <div class="section-title">Document Indexing Pipeline</div>
+        <div class="section-title">Document Ingest Pipeline &mdash; vendor-free Python via Haiku 4.5</div>
         <div class="flow-row">
           <div class="flow-step" data-layer="L3">
             <div class="step-label">Upload</div>
-            File uploaded via API or admin
+            <code>/admin/ingest/</code> or<br><code>manage.py ingest_pdf</code>
           </div>
           <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Extract</div>
-            PDF / DOCX / TXT &rarr; text
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step" data-layer="L3">
+          <div class="flow-step" data-layer="L2">
             <div class="step-label">Chunk</div>
-            512 tokens, 50 overlap
+            pypdf &middot; 15 pages/chunk<br><span style="font-size:10px; color:#7a6f98;">byte-level slices preserve page numbers</span>
           </div>
           <div class="flow-arrow">&rarr;</div>
           <div class="flow-step highlight" data-layer="L2">
-            <div class="step-label">RAPTOR</div>
-            Build hierarchy tree (GMM clusters &rarr; summaries)
+            <div class="step-label">Extract</div>
+            Claude Haiku 4.5 (native PDF)<br><span style="font-size:10px; color:#7a6f98;">forced tool-use, cached system prompt</span>
+          </div>
+          <div class="flow-arrow">&rarr;</div>
+          <div class="flow-step" data-layer="L2">
+            <div class="step-label">Embed</div>
+            OpenAI <code>text-embedding-3-small</code><br><span style="font-size:10px; color:#7a6f98;">1536-dim per atom</span>
           </div>
           <div class="flow-arrow">&rarr;</div>
           <div class="flow-step" data-layer="L3">
-            <div class="step-label">Index</div>
-            Store in Weaviate
+            <div class="step-label">Write</div>
+            Neo4j Aura<br><code>(Document)-[:HAS_SECTION]-&gt;(Section)-[:HAS_ATOM]-&gt;(Atom)</code>
           </div>
         </div>
-        <div style="font-size:11px; color:#7a6f98; margin-top:8px; padding-left:4px;">
-          <strong style="color:#f39c12;">Two parallel pipelines:</strong>
-          User files &rarr; <code style="color:#C3A183;">External_documents</code> class &nbsp;&middot;&nbsp;
-          System docs &rarr; <code style="color:#C3A183;">RAPTORNode</code> class &nbsp;&middot;&nbsp;
-          Runs as Celery background task
+        <div style="font-size:11px; color:#7a6f98; margin-top:10px; padding-left:4px;">
+          One synchronous transaction per document &middot; per-chunk failures surfaced as <code>chunk_errors</code> &middot; re-ingest button wipes existing atoms for a doc_id then writes fresh &middot; ~$0.02/doc for a 3-page memo &middot; deactivated n8n <code>Ingest</code> workflow superseded
+        </div>
+      </div>
+
+      <!-- HOST CONFIG -->
+      <div class="flow-section" style="margin-top:24px;" data-layer="L3">
+        <div class="section-title">Host config &mdash; London EC2 <code>i-03284d4a97dfd1d37</code></div>
+        <div class="flow-row" style="flex-wrap:wrap;">
+          <div class="flow-step" data-layer="L3">
+            <div class="step-label">Caddy snap</div>
+            <code>backend.falconium.ai</code> &rarr; 80, 443<br><span style="font-size:10px; color:#7a6f98;">/n8n/* &rarr; 5678 &middot; /ws/* &rarr; 8002 &middot; * &rarr; 8001</span>
+          </div>
+          <div class="flow-step" data-layer="L3">
+            <div class="step-label">Gunicorn</div>
+            Django on 127.0.0.1:8001<br><span style="font-size:10px; color:#7a6f98;">--workers 2 --timeout 600</span>
+          </div>
+          <div class="flow-step" data-layer="L3">
+            <div class="step-label">n8n (docker)</div>
+            127.0.0.1:5678<br><span style="font-size:10px; color:#7a6f98;">forwarder only since 2026-05-04</span>
+          </div>
+          <div class="flow-step" data-layer="L3">
+            <div class="step-label">Daphne</div>
+            WebSocket on 127.0.0.1:8002
+          </div>
+          <div class="flow-step" data-layer="L3">
+            <div class="step-label">Celery</div>
+            Redis-backed worker<br><span style="font-size:10px; color:#7a6f98;">async memory writes</span>
+          </div>
+        </div>
+        <div style="font-size:11px; color:#7a6f98; margin-top:10px; padding-left:4px;">
+          Caddyfile, regen helper, systemd drop-in, gunicorn unit live in repo at <code>deploy/host-config/</code> &middot; mirrored to <code>s3://falconium/system-backups/&lt;date&gt;/</code> &middot; the snap auto-regenerates <code>caddy.json</code> from the Caddyfile on every restart (ExecStartPre hook)
         </div>
       </div>
 
@@ -1071,11 +1238,20 @@
       <div style="font-size:10px; color:#7a6f98; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase;">LLM Providers</div>
       <div class="ext-service" data-layer="L3">
         <div class="layer-badge l3">L3</div>
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Gq</div>
+        <div>
+          <div class="svc-name">Groq</div>
+          <div class="svc-role">FalcoMain drafter (all branches)</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">qwen/qwen3-32b</div>
+        </div>
+      </div>
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(155,89,182,0.2); color:#9b59b6;">Cl</div>
         <div>
           <div class="svc-name">Anthropic Claude</div>
-          <div class="svc-role">Routing, Q&A, RAPTOR synthesis</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">claude-3-5-haiku-latest</div>
+          <div class="svc-role">FalcoDocs atom extraction (native PDF)</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">claude-haiku-4-5 &middot; $1/$5 per 1M tok</div>
         </div>
       </div>
       <div class="ext-service" data-layer="L3">
@@ -1083,8 +1259,8 @@
         <div class="svc-icon" style="background:rgba(46,204,113,0.2); color:#2ecc71;">OA</div>
         <div>
           <div class="svc-name">OpenAI</div>
-          <div class="svc-role">Embeddings + RAPTOR summaries</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">text-embedding-ada-002 &middot; gpt-4o-mini</div>
+          <div class="svc-role">Atom embeddings (FalcoDocs)</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">text-embedding-3-small (1536-dim)</div>
         </div>
       </div>
       <div class="ext-service" data-layer="L3">
@@ -1092,8 +1268,8 @@
         <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Px</div>
         <div>
           <div class="svc-name">Perplexity</div>
-          <div class="svc-role">Real-time internet search</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">sonar-pro</div>
+          <div class="svc-role">FalcoMain Branch C web search</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">sonar (20s timeout)</div>
         </div>
       </div>
 
@@ -1102,7 +1278,7 @@
         <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Gr</div>
         <div>
-          <div class="svc-name">Groq</div>
+          <div class="svc-name">Groq Whisper</div>
           <div class="svc-role">Fast Whisper transcription</div>
         </div>
       </div>
@@ -1137,19 +1313,49 @@
       <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Storage & Data</div>
       <div class="ext-service" data-layer="L3">
         <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">S3</div>
+        <div class="svc-icon" style="background:rgba(195,161,131,0.2); color:#C3A183;">N4</div>
         <div>
-          <div class="svc-name">AWS S3</div>
-          <div class="svc-role">File storage (production)</div>
+          <div class="svc-name">Neo4j Aura</div>
+          <div class="svc-role">FalcoDocs knowledge graph</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">FalcoNeo4j (4d95f6de) &middot; 1536-dim vector index</div>
         </div>
       </div>
       <div class="ext-service" data-layer="L3">
         <div class="layer-badge l3">L3</div>
+        <div class="svc-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">S3</div>
+        <div>
+          <div class="svc-name">AWS S3</div>
+          <div class="svc-role">File storage + system backups</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">s3://falconium/</div>
+        </div>
+      </div>
+      <div class="ext-service" data-layer="L3" style="opacity:0.55;">
+        <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">Wv</div>
         <div>
           <div class="svc-name">Weaviate</div>
-          <div class="svc-role">Vector DB for RAG</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">2 classes: RAPTORNode + External_documents</div>
+          <div class="svc-role">Legacy RAPTOR store (queued for removal)</div>
+          <div style="font-size:10px; color:#e67e22; margin-top:2px;">superseded by Neo4j Aura for chat retrieval</div>
+        </div>
+      </div>
+
+      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Config & Secrets</div>
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
+        <div class="svc-icon" style="background:rgba(195,161,131,0.2); color:#C3A183;">SSM</div>
+        <div>
+          <div class="svc-name">AWS SSM Parameter Store</div>
+          <div class="svc-role">All <code>/falconium/*</code> secrets</div>
+          <div style="font-size:10px; color:#5a5080; margin-top:2px;">edited via <code>/admin/secrets/</code> &middot; TTL cache + invalidation</div>
+        </div>
+      </div>
+      <div class="ext-service" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
+        <div class="svc-icon" style="background:rgba(167,127,199,0.2); color:#a77fc7;">Sn</div>
+        <div>
+          <div class="svc-name">Sentry</div>
+          <div class="svc-role">Errors + traces</div>
+          <div style="font-size:10px; color:#e67e22; margin-top:2px;">backend errors currently land in iPad project (cleanup TODO)</div>
         </div>
       </div>
     </div>
