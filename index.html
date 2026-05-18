@@ -1273,21 +1273,42 @@
         </div>
       </div>
 
-      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Audio & Voice</div>
-      <div class="ext-service" data-layer="L3">
+      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Audio & Voice — On-Device (iPad)</div>
+      <div class="ext-service" style="border-color:#27ae60;" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
+        <div class="svc-icon" style="background:rgba(39,174,96,0.2); color:#27ae60;">WK</div>
+        <div>
+          <div class="svc-name">WhisperKit</div>
+          <div class="svc-role">On-device STT (live on iPad)</div>
+          <div style="font-size:9px; color:#27ae60; margin-top:3px;">Shipped — replaces Groq Whisper</div>
+        </div>
+      </div>
+      <div class="ext-service" style="border-color:#27ae60;" data-layer="L3">
+        <div class="layer-badge l3">L3</div>
+        <div class="svc-icon" style="background:rgba(39,174,96,0.2); color:#27ae60;">FA</div>
+        <div>
+          <div class="svc-name">FluidAudio</div>
+          <div class="svc-role">On-device TTS &amp; diarisation (live on iPad)</div>
+          <div style="font-size:9px; color:#27ae60; margin-top:3px;">Shipped — replaces Replicate WhisperX</div>
+        </div>
+      </div>
+      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Audio & Voice — Legacy (dead code)</div>
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.45;" data-layer="L3">
         <div class="layer-badge l3">L3</div>
         <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Gr</div>
         <div>
           <div class="svc-name">Groq Whisper</div>
           <div class="svc-role">Fast Whisper transcription</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Legacy — superseded by WhisperKit. Dead code in <code>apps/chats/util.py</code></div>
         </div>
       </div>
-      <div class="ext-service" data-layer="L3">
+      <div class="ext-service" style="border-color:#e74c3c; opacity:0.45;" data-layer="L3">
         <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(241,196,15,0.2); color:#f1c40f;">Re</div>
+        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Re</div>
         <div>
           <div class="svc-name">Replicate</div>
           <div class="svc-role">WhisperX + speaker diarisation</div>
+          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Legacy — superseded by FluidAudio. Dead code in <code>apps/chats/consumers.py</code></div>
         </div>
       </div>
       <div class="ext-service" style="border-color:#e74c3c; opacity:0.5;" data-layer="L3">
