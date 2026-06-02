@@ -1,1616 +1,754 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Falconium Backend Architecture</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:           #1a1428;
+    --bg-card:      #221a3a;
+    --bg-card-2:    #2a1f47;
+    --bg-seam:      #2b1f54;
+    --border:       #3a2f5a;
+    --border-2:     #4d3f73;
+    --text:         #e8e4f0;
+    --text-dim:     #b8b0cc;
+    --text-faint:   #7a6e8a;
+    --gold:         #C3A183;
+    --gold-dim:     #8a715b;
+    --teal:         #7fb6a8;
+    --purple:       #a77fc7;
+    --skill-gold:   #d4b896;
+    --status-built: #6abf7a;
+    --status-partial: #d4a85a;
+    --status-missing: #c45a6a;
+    --status-planned: #6a8ec4;
+    --status-seam:  #c3a183;
+  }
+
   body {
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    background: #1a1428;
-    color: #e8e4f0;
-    overflow-x: hidden;
+    line-height: 1.55;
+    font-size: 14px;
+    min-height: 100vh;
   }
 
-  /* Header */
-  .header {
+  header {
     background: linear-gradient(135deg, #2B1F54 0%, #1a1428 100%);
-    border-bottom: 3px solid #C3A183;
-    padding: 20px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    border-bottom: 3px solid var(--gold);
+    padding: 32px 56px 24px;
   }
-  .header h1 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #C3A183;
-    letter-spacing: 1px;
+  header h1 { color: var(--gold); font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
+  header .subtitle { color: var(--text-dim); font-size: 14px; margin-top: 6px; }
+  header .meta {
+    margin-top: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+    font-size: 12px; color: var(--text-faint);
   }
-  .header .subtitle {
-    font-size: 13px;
-    color: #9a8fb8;
-    margin-top: 2px;
-  }
-  .header .date {
-    font-size: 12px;
-    color: #7a6f98;
-  }
+  header .nav-link { color: var(--gold); text-decoration: none; font-weight: 500; }
+  header .nav-link:hover { text-decoration: underline; }
 
-  /* Legend */
   .legend {
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-    padding: 16px 40px;
-    background: #221a3a;
-    border-bottom: 1px solid #3a2f5a;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 56px;
   }
   .legend-row {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    align-items: center;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #b0a8c8;
-  }
-  .legend-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-
-  /* Layer filter buttons */
-  .layer-filter-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    border-radius: 12px;
-    border: 1px solid;
-    font-size: 12px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-  }
-  .layer-filter-btn.l1 {
-    border-color: #C3A183;
-    color: #C3A183;
-    background: rgba(195, 161, 131, 0.05);
-  }
-  .layer-filter-btn.l1:hover {
-    background: rgba(195, 161, 131, 0.15);
-  }
-  .layer-filter-btn.l1.active {
-    background: rgba(195, 161, 131, 0.25);
-    box-shadow: 0 0 12px rgba(195, 161, 131, 0.3);
-  }
-  .layer-filter-btn.l2 {
-    border-color: #2dd4bf;
-    color: #2dd4bf;
-    background: rgba(45, 212, 191, 0.05);
-  }
-  .layer-filter-btn.l2:hover {
-    background: rgba(45, 212, 191, 0.15);
-  }
-  .layer-filter-btn.l2.active {
-    background: rgba(45, 212, 191, 0.25);
-    box-shadow: 0 0 12px rgba(45, 212, 191, 0.3);
-  }
-  .layer-filter-btn.l3 {
-    border-color: #7b93db;
-    color: #7b93db;
-    background: rgba(123, 147, 219, 0.05);
-  }
-  .layer-filter-btn.l3:hover {
-    background: rgba(123, 147, 219, 0.15);
-  }
-  .layer-filter-btn.l3.active {
-    background: rgba(123, 147, 219, 0.25);
-    box-shadow: 0 0 12px rgba(123, 147, 219, 0.3);
-  }
-  .layer-filter-btn.reset {
-    border-color: #7a6f98;
-    color: #b0a8c8;
-    background: rgba(122, 111, 152, 0.05);
-  }
-  .layer-filter-btn.reset:hover {
-    background: rgba(122, 111, 152, 0.15);
-  }
-  .layer-filter-btn.reset.active {
-    background: rgba(122, 111, 152, 0.25);
-    box-shadow: 0 0 12px rgba(122, 111, 152, 0.3);
-  }
-
-  /* Canvas */
-  .canvas {
-    padding: 30px 40px;
-    min-height: calc(100vh - 140px);
-    position: relative;
-  }
-
-  /* SVG layer for arrows */
-  .arrow-layer {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    pointer-events: none;
-    z-index: 1;
-  }
-
-  /* Section titles */
-  .section-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #7a6f98;
-    margin-bottom: 16px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #2f2650;
-  }
-
-  /* Grid layout */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 200px 1fr 220px;
-    gap: 30px;
-    position: relative;
-    z-index: 2;
-  }
-
-  /* App boxes */
-  .app-box {
-    background: #251e40;
-    border: 1px solid #3a2f5a;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    position: relative;
-  }
-  .app-box[data-layer] {
-    border-left-width: 3px !important;
-  }
-  .app-box[data-layer="L1"] {
-    border-left-color: #C3A183;
-  }
-  .app-box[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .app-box[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .app-box:hover {
-    border-color: #C3A183;
-    box-shadow: 0 0 20px rgba(195, 161, 131, 0.1);
-  }
-  .app-box.island {
-    border: 2px dashed #e67e22;
-    position: relative;
-  }
-  .app-box.island::after {
-    content: 'ISLAND';
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    color: #e67e22;
-    background: rgba(230, 126, 34, 0.15);
-    padding: 2px 6px;
-    border-radius: 3px;
-    z-index: 10;
-  }
-  .app-box.has-issues {
-    border-left: 3px solid #e74c3c;
-  }
-
-  /* Layer badges */
-  .layer-badge {
-    position: absolute;
-    top: 8px;
-    right: 8px;
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    color: #1a1428;
-    z-index: 11;
-  }
-  .layer-badge.l1 {
-    background: #C3A183;
-  }
-  .layer-badge.l2 {
-    background: #2dd4bf;
-  }
-  .layer-badge.l3 {
-    background: #7b93db;
-  }
-
-  .app-header {
-    padding: 14px 16px 10px;
-    border-bottom: 1px solid #3a2f5a;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-  }
-  .app-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .app-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #e8e4f0;
-  }
-  .app-desc {
-    font-size: 11px;
-    color: #8a7faa;
-    margin-top: 2px;
-  }
-  .app-body {
-    padding: 12px 16px;
-  }
-  .app-body.collapsed {
-    display: none;
-  }
-
-  /* Component items inside apps */
-  .component {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px solid #2f2650;
-    font-size: 12px;
-    position: relative;
-  }
-  .component[data-layer] {
-    /* Components can have their own layer indicators */
-  }
-  .component:last-child { border-bottom: none; }
-  .comp-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin-top: 5px;
-    flex-shrink: 0;
-  }
-  .comp-dot.active { background: #2ecc71; }
-  .comp-dot.partial { background: #f39c12; }
-  .comp-dot.missing { background: #e74c3c; }
-  .comp-dot.planned { background: #3498db; }
-  .comp-name {
-    color: #d0c8e8;
-    flex: 1;
-  }
-  .comp-status {
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    white-space: nowrap;
-  }
-  .status-built { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
-  .status-partial { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
-  .status-missing { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
-  .status-planned { background: rgba(52, 152, 219, 0.15); color: #3498db; }
-
-  /* External service boxes */
-  .ext-service {
-    background: #1e1833;
-    border: 1px solid #2f2650;
-    border-radius: 6px;
-    padding: 10px 14px;
+    display: flex; flex-wrap: wrap; gap: 28px; align-items: center;
     margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-    transition: opacity 0.2s ease;
   }
-  .ext-service[data-layer] {
-    border-left-width: 3px;
-    border-left-style: solid;
-    padding-left: 11px;
+  .legend-row:last-child { margin-bottom: 0; }
+  .legend-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-dim); min-width: 110px; font-weight: 600;
   }
-  .ext-service[data-layer="L1"] {
-    border-left-color: #C3A183;
+  .legend-items { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+  .legend-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text-dim);
   }
-  .ext-service[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .ext-service[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .ext-service .svc-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
+  .status-dot {
+    display: inline-block; width: 11px; height: 11px; border-radius: 50%;
     flex-shrink: 0;
   }
-  .ext-service .svc-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: #d0c8e8;
-  }
-  .ext-service .svc-role {
-    font-size: 10px;
-    color: #7a6f98;
-  }
+  .status-built   { background: var(--status-built); }
+  .status-partial { background: var(--status-partial); }
+  .status-missing { background: var(--status-missing); }
+  .status-planned { background: var(--status-planned); }
+  .status-seam    { background: transparent; border: 2px dashed var(--gold); width: 9px; height: 9px; }
 
-  /* Client box */
-  .client-box {
-    background: #251e40;
-    border: 1px solid #C3A183;
-    border-radius: 8px;
-    padding: 20px;
-    text-align: center;
-    position: relative;
+  .layer-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+  .layer-btn {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border-2);
+    padding: 6px 14px; font-size: 12px; cursor: pointer;
+    font-family: inherit; border-radius: 2px;
+    transition: all 0.15s;
   }
-  .client-box[data-layer] {
-    border-left-width: 3px;
-    border-left-style: solid;
-  }
-  .client-box[data-layer="L3"] {
-    border-left-color: #7b93db;
-    border-left-width: 3px;
-  }
-  .client-box .icon {
-    font-size: 36px;
-    margin-bottom: 8px;
-  }
-  .client-box .label {
-    font-size: 14px;
-    font-weight: 600;
-    color: #C3A183;
-  }
-  .client-box .sub {
-    font-size: 11px;
-    color: #8a7faa;
-    margin-top: 4px;
-  }
+  .layer-btn:hover { color: var(--text); border-color: var(--gold-dim); }
+  .layer-btn.active.all  { background: var(--gold-dim); color: var(--bg); border-color: var(--gold-dim); }
+  .layer-btn.active.l1   { background: var(--skill-gold); color: var(--bg); border-color: var(--skill-gold); }
+  .layer-btn.active.l2   { background: var(--teal); color: var(--bg); border-color: var(--teal); }
+  .layer-btn.active.l3   { background: var(--purple); color: var(--bg); border-color: var(--purple); }
+  .layer-btn.active.seam { background: transparent; color: var(--gold); border: 2px dashed var(--gold); padding: 5px 13px; }
 
-  /* Backend grid */
-  .backend-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 16px;
-  }
+  .container { padding: 32px 56px 80px; max-width: 1800px; margin: 0 auto; }
 
-  /* Issues panel */
-  .issues-panel {
-    margin-top: 30px;
-    background: #251e40;
-    border: 1px solid #3a2f5a;
-    border-radius: 8px;
-    overflow: hidden;
-  }
-  .issues-header {
-    padding: 14px 20px;
-    background: rgba(231, 76, 60, 0.1);
-    border-bottom: 1px solid #3a2f5a;
-    font-size: 14px;
-    font-weight: 600;
-    color: #e74c3c;
-    cursor: pointer;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .issues-body {
-    padding: 16px 20px;
-  }
-  .issue-item {
-    padding: 12px 0;
-    border-bottom: 1px solid #2f2650;
-    display: flex;
-    gap: 12px;
-  }
-  .issue-item:last-child { border-bottom: none; }
-  .issue-severity {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 1px;
-    padding: 3px 8px;
-    border-radius: 3px;
-    white-space: nowrap;
-    height: fit-content;
-    margin-top: 2px;
-  }
-  .sev-high { background: rgba(231, 76, 60, 0.2); color: #e74c3c; }
-  .sev-med { background: rgba(243, 156, 18, 0.2); color: #f39c12; }
-  .sev-low { background: rgba(52, 152, 219, 0.2); color: #3498db; }
-  .issue-text {
-    font-size: 13px;
-    color: #d0c8e8;
-    line-height: 1.5;
-  }
-  .issue-text strong {
-    color: #e8e4f0;
-  }
-
-  /* Infrastructure bar */
-  .infra-bar {
-    margin-top: 30px;
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 12px;
-  }
-  .infra-item {
-    background: #1e1833;
-    border: 1px solid #2f2650;
-    border-radius: 6px;
-    padding: 14px;
-    text-align: center;
-    position: relative;
-    transition: opacity 0.2s ease;
-  }
-  .infra-item[data-layer] {
-    border-left-width: 3px;
-    border-left-style: solid;
-    padding-left: 11px;
-  }
-  .infra-item[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .infra-item .infra-icon {
-    font-size: 20px;
-    margin-bottom: 6px;
-  }
-  .infra-item .infra-name {
-    font-size: 12px;
-    font-weight: 600;
-    color: #d0c8e8;
-  }
-  .infra-item .infra-detail {
-    font-size: 10px;
-    color: #7a6f98;
-    margin-top: 2px;
-  }
-
-  /* Connection lines (CSS-based) */
-  .connection-label {
-    position: absolute;
-    font-size: 9px;
-    color: #7a6f98;
-    background: #1a1428;
-    padding: 1px 4px;
-    border-radius: 2px;
-    white-space: nowrap;
-  }
-
-  /* Toggle arrow */
-  .toggle-arrow {
-    transition: transform 0.2s;
-    color: #7a6f98;
-    font-size: 12px;
-  }
-  .toggle-arrow.open { transform: rotate(180deg); }
-
-  /* Data flow section */
-  .flow-section {
-    margin-top: 30px;
-    position: relative;
-  }
-  .flow-section[data-layer] {
-    transition: opacity 0.2s ease;
-  }
-  .flow-row {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    padding: 16px 0;
-  }
-  .flow-step {
-    background: #251e40;
-    border: 1px solid #3a2f5a;
-    border-radius: 6px;
-    padding: 10px 16px;
-    font-size: 12px;
-    color: #d0c8e8;
-    text-align: center;
-    min-width: 120px;
-    position: relative;
-    transition: opacity 0.2s ease;
-  }
-  .flow-step[data-layer] {
-    border-left-width: 3px !important;
-  }
-  .flow-step[data-layer="L1"] {
-    border-left-color: #C3A183;
-  }
-  .flow-step[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .flow-step[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .flow-step .step-label {
-    font-size: 9px;
-    color: #7a6f98;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 4px;
-  }
-  .flow-step.highlight {
-    border-color: #C3A183;
-    background: #2f2348;
-  }
-  .flow-arrow {
-    color: #C3A183;
-    font-size: 18px;
-    padding: 0 8px;
-    flex-shrink: 0;
-  }
-  .flow-step.decision {
-    background: #2a2048;
-    border-color: #9b59b6;
-    transform: rotate(0deg);
-  }
-  .flow-branch {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    align-items: flex-start;
-  }
-  .flow-branch-item {
-    font-size: 11px;
-    color: #b0a8c8;
-    padding: 4px 10px;
-    background: #1e1833;
+  .layer-band {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 4px;
-    border: 1px solid #2f2650;
+    padding: 22px 26px 26px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .layer-band.layer-skills  { border-left: 4px solid var(--skill-gold); }
+  .layer-band.layer-harness { border-left: 4px solid var(--teal); }
+  .layer-band.layer-infra   { border-left: 4px solid var(--purple); }
+  .layer-band.layer-seam {
+    border-left: 4px solid var(--gold);
+    border-style: dashed;
+    border-width: 1px 1px 1px 4px;
+    background: linear-gradient(180deg, rgba(195,161,131,0.06) 0%, var(--bg-card) 100%);
   }
 
-  /* Endpoint count badges */
-  .endpoint-badge {
-    display: inline-block;
-    font-size: 10px;
-    background: rgba(195, 161, 131, 0.15);
-    color: #C3A183;
-    padding: 1px 6px;
+  .layer-header {
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 14px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .layer-header .layer-tag {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em;
+    padding: 3px 10px; border-radius: 2px; font-weight: 700;
+  }
+  .layer-tag.l1   { background: var(--skill-gold); color: var(--bg); }
+  .layer-tag.l2   { background: var(--teal); color: var(--bg); }
+  .layer-tag.l3   { background: var(--purple); color: var(--bg); }
+  .layer-tag.seam { background: transparent; color: var(--gold); border: 1px dashed var(--gold); }
+  .layer-header h2 { font-size: 19px; font-weight: 700; color: var(--text); }
+  .layer-header .layer-sub { font-size: 12px; color: var(--text-faint); flex: 1; text-align: right; }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 14px;
+  }
+  .card {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
     border-radius: 3px;
-    margin-left: 4px;
+    padding: 14px 16px;
+    position: relative;
+  }
+  .card.future { background: transparent; border: 1px dashed var(--gold-dim); }
+  .card-title {
+    font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
+  }
+  .card-meta { font-size: 11px; color: var(--text-faint); margin-bottom: 8px; }
+  .card-body { font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+  .card-body code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 11.5px; color: var(--gold);
+    background: rgba(195,161,131,0.08);
+    padding: 1px 5px; border-radius: 2px;
+  }
+  .card ul { list-style: none; margin-top: 6px; }
+  .card ul li {
+    font-size: 12px; color: var(--text-dim);
+    padding-left: 14px; position: relative; margin-bottom: 3px;
+  }
+  .card ul li::before {
+    content: ""; position: absolute; left: 0; top: 7px;
+    width: 5px; height: 5px; background: var(--gold-dim);
+  }
+  .card-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10.5px; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.06em;
   }
 
-  /* Fade effect for filtered elements */
-  [data-layer].layer-dimmed {
-    opacity: 0.15 !important;
-    pointer-events: none;
+  .layer-band.layer-seam .layer-header h2 { color: var(--gold); }
+  .layer-band.layer-seam::after {
+    content: "FUTURE LAYER";
+    position: absolute; top: 14px; right: 22px;
+    font-size: 10px; color: var(--gold);
+    letter-spacing: 0.18em; font-weight: 700;
   }
 
-  /* Responsive */
-  @media (max-width: 1200px) {
-    .main-grid { grid-template-columns: 1fr; }
-    .backend-grid { grid-template-columns: 1fr 1fr; }
+  .pipeline {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+  }
+  .pipeline-row { display: flex; gap: 8px; align-items: stretch; min-width: max-content; }
+  .pipe-step {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 2px;
+    min-width: 96px; position: relative;
+  }
+  .pipe-step.seam { border: 1px dashed var(--gold); background: rgba(195,161,131,0.05); }
+  .pipe-step.branch { background: rgba(127,182,168,0.08); border-color: var(--teal); }
+  .pipe-step .pn { font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.09em; }
+  .pipe-step .nm { font-size: 12px; color: var(--text); font-weight: 600; margin-top: 2px; }
+  .pipe-step .sub { font-size: 10.5px; color: var(--text-faint); margin-top: 3px; }
+  .pipe-arrow { align-self: center; color: var(--gold-dim); font-size: 16px; padding: 0 1px; }
+
+  .callout {
+    background: rgba(127,182,168,0.07);
+    border-left: 3px solid var(--teal);
+    padding: 10px 14px; margin-top: 10px;
+    font-size: 12.5px; color: var(--text-dim);
+  }
+
+  .subhead {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-dim); margin: 24px 0 12px;
+  }
+
+  .dimmed { opacity: 0.18; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 60px; padding: 18px 56px;
+    text-align: center; font-size: 11.5px; color: var(--text-faint);
+  }
+
+  @media (max-width: 720px) {
+    .legend, header, .container, footer { padding-left: 22px; padding-right: 22px; }
+    .grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-<!-- NAV BAR -->
-<div style="background:#221a3a; border-bottom:1px solid #3a2f5a; padding:8px 40px; display:flex; gap:24px; align-items:center; font-size:13px;">
-  <span style="color:#C3A183; font-weight:600; border-bottom:2px solid #C3A183; padding-bottom:2px;">Backend</span>
-  <a href="frontend.html" style="color:#8a7faa; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#C3A183'" onmouseout="this.style.color='#8a7faa'">Frontend &rarr;</a>
-</div>
-
-<!-- HEADER -->
-<div class="header">
-  <div>
-    <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
-    <div class="subtitle">Live system map &mdash; FalcoMain StepGraph live, FalcoDocs Python ingest cut over from n8n</div>
+<header>
+  <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
+  <div class="subtitle">Django 5.0 · DRF · PostgreSQL · Custom step-graph runner · Runtime Wiki · SSM-backed secrets · Structured logging</div>
+  <div class="meta">
+    <span>2 June 2026 · Current state · FalcoMain cutover live since 11 May · Runtime Wiki deployed 22 May · Verified against work log and wiki</span>
+    <a href="frontend-architecture.html" class="nav-link">→ Frontend Architecture</a>
   </div>
-  <div class="date">Updated 13 May 2026 &middot; Django 5.0.6 &middot; London EC2 (eu-west-2)</div>
-</div>
+</header>
 
-<!-- LEGEND -->
 <div class="legend">
-  <!-- Status legend row -->
   <div class="legend-row">
-    <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div> Built & working</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#f39c12"></div> Partial / needs work</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#e74c3c"></div> Missing / not implemented</div>
-    <div class="legend-item"><div class="legend-dot" style="background:#3498db"></div> Planned (future)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:transparent; border: 2px dashed #e67e22;"></div> Island (disconnected)</div>
-    <div class="legend-item"><div class="legend-dot" style="background:transparent; border-left: 3px solid #e74c3c;"></div> Has issues</div>
+    <span class="legend-label">Status</span>
+    <div class="legend-items">
+      <div class="legend-item"><span class="status-dot status-built"></span><span>Built · live</span></div>
+      <div class="legend-item"><span class="status-dot status-partial"></span><span>Partial</span></div>
+      <div class="legend-item"><span class="status-dot status-planned"></span><span>Planned (not yet started)</span></div>
+      <div class="legend-item"><span class="status-dot status-seam"></span><span>Seam — future layer</span></div>
+    </div>
   </div>
-
-  <!-- Layer filter row -->
   <div class="legend-row">
-    <span style="font-size:11px; color:#7a6f98; font-weight:600; text-transform:uppercase; letter-spacing:1px;">Filter by Layer:</span>
-    <button class="layer-filter-btn reset active" onclick="filterByLayer(null)">All Layers</button>
-    <button class="layer-filter-btn l1" onclick="filterByLayer('L1')">L1 · Skills (Ilya)</button>
-    <button class="layer-filter-btn l2" onclick="filterByLayer('L2')">L2 · Harness (Ilya + Claude)</button>
-    <button class="layer-filter-btn l3" onclick="filterByLayer('L3')">L3 · Infrastructure (Developers)</button>
+    <span class="legend-label">Layers</span>
+    <div class="layer-buttons">
+      <button class="layer-btn all active" onclick="filterLayer('all')">All</button>
+      <button class="layer-btn l1" onclick="filterLayer('l1')">L1 · Skills</button>
+      <button class="layer-btn l2" onclick="filterLayer('l2')">L2 · Harness</button>
+      <button class="layer-btn l3" onclick="filterLayer('l3')">L3 · Infrastructure</button>
+      <button class="layer-btn seam" onclick="filterLayer('seam')">Seams · Future</button>
+    </div>
   </div>
 </div>
 
-<!-- MAIN CANVAS -->
-<div class="canvas">
+<div class="container">
 
-  <div class="main-grid">
-
-    <!-- LEFT: CLIENT -->
-    <div>
-      <div class="section-title">Client</div>
-      <div class="client-box" style="margin-bottom: 20px;" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="icon">&#x1F4F1;</div>
-        <div class="label">iPad App</div>
-        <div class="sub">Swift / SwiftUI / MVVM</div>
-        <div style="font-size:10px; color:#7a6f98; margin-top:10px; text-align:left; line-height:1.6;">
-          REST API calls &rarr; <span style="color:#C3A183">/api/v1/*</span><br>
-          WebSocket &rarr; <span style="color:#C3A183">ws/transcribe/</span><br>
-          Auth: JWT Bearer tokens
-        </div>
-      </div>
-
-      <div class="section-title" style="margin-top:30px;">n8n &mdash; forwarder only</div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(195,161,131,0.2); color:#C3A183;">n8n</div>
-        <div>
-          <div class="svc-name">MAIN_AGENT Falconium</div>
-          <div class="svc-role">3-node forwarder &rarr; Django</div>
-          <div style="font-size:9px; color:#C3A183; margin-top:3px;">Webhook &rarr; ForwarderToFalcoMain &rarr; Respond</div>
-        </div>
-      </div>
-      <div style="font-size:10px; color:#7a6f98; margin-top:6px; line-height:1.5;">
-        Active: <strong style="color:#C3A183;">MAIN_AGENT Falconium</strong>, <strong style="color:#a77fc7;">Memory</strong> (audit pending).<br>
-        Deactivated: <strong>Ingest</strong> (2026-05-12) &middot; <strong>FalcoEmotions</strong> (no callers).<br>
-        Inactive backup: <strong>MAIN_AGENT_Falconium [BACKUP pre-rebuild]</strong>.
-      </div>
-
-      <div class="section-title" style="margin-top:30px;">Future / Seams</div>
-      <div class="ext-service" style="border-color:#3498db; opacity:0.7;" data-layer="L2">
-        <div class="layer-badge l2">L2</div>
-        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">An</div>
-        <div>
-          <div class="svc-name">Anonymisation</div>
-          <div class="svc-role">PII / sensitive masking &middot; §9</div>
-          <div style="font-size:9px; color:#3498db; margin-top:3px;">Steps 03 &amp; 11 are pass-through stubs; chokepoint position locked</div>
-        </div>
-      </div>
-      <div class="ext-service" style="border-color:#3498db; opacity:0.7;" data-layer="L2">
-        <div class="layer-badge l2">L2</div>
-        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">FJ</div>
-        <div>
-          <div class="svc-name">FalcoJudge / Verify</div>
-          <div class="svc-role">Multi-agent verification &middot; §6</div>
-          <div style="font-size:9px; color:#3498db; margin-top:3px;">Step 10 pass-through; different vendor than drafter (planned)</div>
-        </div>
-      </div>
-      <div class="ext-service" style="border-color:#3498db; opacity:0.7;" data-layer="L2">
-        <div class="layer-badge l2">L2</div>
-        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">FM</div>
-        <div>
-          <div class="svc-name">FalcoMath / Branch D</div>
-          <div class="svc-role">Numerical reasoning &middot; §5</div>
-          <div style="font-size:9px; color:#3498db; margin-top:3px;">D-classified queries downgrade to Branch A today</div>
-        </div>
-      </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.55;" data-layer="L2">
-        <div class="layer-badge l2">L2</div>
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Ed</div>
-        <div>
-          <div class="svc-name">Edge Orchestrator</div>
-          <div class="svc-role">On-device Llama 3.5</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Future, not for MVP &mdash; n8n forwarder serves this role today</div>
-        </div>
-      </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.55;" data-layer="L2">
-        <div class="layer-badge l2">L2</div>
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Em</div>
-        <div>
-          <div class="svc-name">Emotion Engine</div>
-          <div class="svc-role">13-state tone adaptation</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">FalcoEmotions n8n workflow stranded (no callers) &middot; rebuild as StepGraph step when iPad consumes it</div>
-        </div>
-      </div>
+  <!-- LAYER 1 — SKILLS -->
+  <div class="layer-band layer-skills" data-layer-band="l1">
+    <div class="layer-header">
+      <span class="layer-tag l1">L1 · Skills</span>
+      <h2>Banking Skills Library</h2>
+      <span class="layer-sub">Ilya-owned · Markdown only · No code</span>
     </div>
-
-    <!-- CENTER: BACKEND APPS -->
-    <div>
-      <div class="section-title">Django Backend &mdash; 6 Apps <span style="color:#C3A183; font-weight:400;">/api/v1/</span></div>
-
-      <div class="backend-grid">
-
-        <!-- ACCOUNTS -->
-        <div class="app-box" onclick="toggleApp(this)" data-layer="L3">
-          <div class="layer-badge l3">L3</div>
-          <div class="app-header">
-            <div class="app-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Ac</div>
-            <div>
-              <div class="app-name">accounts</div>
-              <div class="app-desc">Auth & user profiles</div>
-            </div>
-            <span class="toggle-arrow open">&#9660;</span>
-          </div>
-          <div class="app-body">
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">User model (email-based auth)</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">JWT login + token refresh <span class="endpoint-badge">5 endpoints</span></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Outlook OAuth token storage</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Password reset (sends to admins, not user)</div>
-              <div class="comp-status status-partial">issue</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Celery task decorators commented out</div>
-              <div class="comp-status status-partial">issue</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- CHATS -->
-        <div class="app-box has-issues" onclick="toggleApp(this)" data-layer="L2">
-          <div class="layer-badge l2">L2</div>
-          <div class="app-header">
-            <div class="app-icon" style="background:rgba(155,89,182,0.2); color:#9b59b6;">Ch</div>
-            <div>
-              <div class="app-name">chats</div>
-              <div class="app-desc">AI pipeline & conversations</div>
-            </div>
-            <span class="toggle-arrow open">&#9660;</span>
-          </div>
-          <div class="app-body">
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Conversations & Messages CRUD <span class="endpoint-badge">8 endpoints</span></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">RAPTOR hierarchical retrieval (LLMRaptorView) &mdash; superseded by <code>agents/falco_docs</code></div>
-              <div class="comp-status status-partial">legacy</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Query routing (Claude &rarr; classify) &mdash; superseded by FalcoMain StepGraph</div>
-              <div class="comp-status status-partial">legacy</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">General Q&A chain (Claude) &mdash; superseded by FalcoMain Branch A</div>
-              <div class="comp-status status-partial">legacy</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Internet search chain (Perplexity) &mdash; superseded by FalcoMain Branch C</div>
-              <div class="comp-status status-partial">legacy</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">WebSocket audio transcription</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">QuestionLLM audit logging &mdash; supplemented by <code>agent_runs</code> + <code>agent_run_steps</code></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Old AIAgent (routing) &mdash; dead code, queued for removal</div>
-              <div class="comp-status status-partial">cleanup</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- SERVICES -->
-        <div class="app-box" onclick="toggleApp(this)" data-layer="L2">
-          <div class="layer-badge l2">L2</div>
-          <div class="app-header">
-            <div class="app-icon" style="background:rgba(46,204,113,0.2); color:#2ecc71;">Sv</div>
-            <div>
-              <div class="app-name">services</div>
-              <div class="app-desc">Projects, docs, files, config</div>
-            </div>
-            <span class="toggle-arrow open">&#9660;</span>
-          </div>
-          <div class="app-body">
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Projects + Tasks + SubTasks <span class="endpoint-badge">18 endpoints</span></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">File upload + folder hierarchy</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">RAPTOR indexing pipeline (Celery) &mdash; superseded by <code>agents/falco_docs</code> Python ingest</div>
-              <div class="comp-status status-partial">legacy</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">FalconiumConfig (prompt management) &mdash; legacy prompts; FalcoMain uses <code>persona.py</code></div>
-              <div class="comp-status status-partial">legacy</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">PromptSetting (RAG tuning) &mdash; legacy</div>
-              <div class="comp-status status-partial">legacy</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Documents (system/internal) admin-managed</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Auto-creates project directory (signal)</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- MAILS -->
-        <div class="app-box island" onclick="toggleApp(this)" data-layer="L3">
-          <div class="layer-badge l3">L3</div>
-          <div class="app-header">
-            <div class="app-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">Ma</div>
-            <div>
-              <div class="app-name">mails</div>
-              <div class="app-desc">Outlook integration</div>
-            </div>
-            <span class="toggle-arrow open">&#9660;</span>
-          </div>
-          <div class="app-body">
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">OAuth callback + logout <span class="endpoint-badge">18 endpoints</span></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Inbox / Sent / Detail fetch</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Send, reply, reply-all, forward</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Bulk ops (delete, flag, read, importance)</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot missing"></div>
-              <div class="comp-name">No local models &mdash; fully stateless</div>
-              <div class="comp-status status-missing">no data</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot missing"></div>
-              <div class="comp-name">Emails not indexed in Weaviate / not searchable by AI</div>
-              <div class="comp-status status-missing">gap</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- MEETINGS -->
-        <div class="app-box island" onclick="toggleApp(this)" data-layer="L3">
-          <div class="layer-badge l3">L3</div>
-          <div class="app-header">
-            <div class="app-icon" style="background:rgba(241,196,15,0.2); color:#f1c40f;">Mt</div>
-            <div>
-              <div class="app-name">meetings</div>
-              <div class="app-desc">Meeting records & tasks</div>
-            </div>
-            <span class="toggle-arrow open">&#9660;</span>
-          </div>
-          <div class="app-body">
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Meeting CRUD + participants <span class="endpoint-badge">9 endpoints</span></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Meeting messages (speaker-attributed)</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Meeting tasks + subtasks + attachments</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Parts &amp; roles per meeting</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Transcript field exists but not indexed for RAG</div>
-              <div class="comp-status status-partial">gap</div>
-            </div>
-            <div class="component" data-layer="L3">
-              <div class="comp-dot missing"></div>
-              <div class="comp-name">No auto-task generation from transcripts</div>
-              <div class="comp-status status-missing">planned</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- MCP SERVER -->
-        <div class="app-box has-issues" onclick="toggleApp(this)" data-layer="L2">
-          <div class="layer-badge l2">L2</div>
-          <div class="app-header">
-            <div class="app-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">MC</div>
-            <div>
-              <div class="app-name">mcp_server</div>
-              <div class="app-desc">AI tool interface (JSON-RPC)</div>
-            </div>
-            <span class="toggle-arrow open">&#9660;</span>
-          </div>
-          <div class="app-body">
-            <div class="component" data-layer="L3">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">JSON-RPC endpoint <span class="endpoint-badge">1 endpoint</span></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">6 MCP tools (docs, search, Q&A, list)</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">MCPToolConfig admin-managed registry</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Duplicates RAPTOR agents from chats app &mdash; both queued for removal</div>
-              <div class="comp-status status-partial">cleanup</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Separate Weaviate classes (RAPTORNode vs External_documents) &mdash; Weaviate itself is legacy</div>
-              <div class="comp-status status-partial">legacy</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- AGENTS — NEW APP HOUSING FALCO_MAIN + FALCO_DOCS -->
-        <div class="app-box" onclick="toggleApp(this)" data-layer="L2">
-          <div class="layer-badge l2">L2</div>
-          <div class="app-header">
-            <div class="app-icon" style="background:rgba(195,161,131,0.2); color:#C3A183;">Ag</div>
-            <div>
-              <div class="app-name">agents</div>
-              <div class="app-desc">FalcoMain StepGraph + FalcoDocs Python ingest</div>
-            </div>
-            <span class="toggle-arrow open">&#9660;</span>
-          </div>
-          <div class="app-body">
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">StepGraph runner (<code>runner/</code>) &mdash; 14 named steps, deterministic replay, contextvars trace</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">FalcoMain endpoint <span class="endpoint-badge">POST /api/v1/agents/falco/main/</span></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Drafter LLM (<code>llm/drafter.py</code>) &mdash; Groq <code>meta-llama/llama-4-scout-17b-16e-instruct</code></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Route step (<code>steps/s05_route.py</code>) &mdash; branches A / B / C live; D downgrades to A</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Branch B (<code>falco_docs/search.py</code>) &mdash; Neo4j vector search, atoms formatted with bracket citations</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Branch C (<code>tools/web_search.py</code>) &mdash; Perplexity <code>sonar</code>, 20s timeout</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">FalcoDocs Python ingest (<code>falco_docs/{pdf,extraction,writer,ingest}.py</code>) &mdash; Haiku 4.5 native PDF, prompt-cached system prompt, Neo4j UNWIND</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Admin upload form <span class="endpoint-badge">/admin/ingest/</span> + CLI <code>manage.py ingest_pdf</code></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Anonymisation step (<code>s03_anonymise</code>) &mdash; pass-through stub; §9 chokepoint position locked</div>
-              <div class="comp-status status-partial">seam</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">Verify step (<code>s10_verify</code>) &mdash; pass-through stub; FalcoJudge seam</div>
-              <div class="comp-status status-partial">seam</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot missing"></div>
-              <div class="comp-name">Branch D (calculation tool) &mdash; not implemented; D queries downgrade to Branch A today</div>
-              <div class="comp-status status-missing">planned</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- MEMORY — NEW APP -->
-        <div class="app-box" onclick="toggleApp(this)" data-layer="L2">
-          <div class="layer-badge l2">L2</div>
-          <div class="app-header">
-            <div class="app-icon" style="background:rgba(167,127,199,0.2); color:#a77fc7;">Me</div>
-            <div>
-              <div class="app-name">memory</div>
-              <div class="app-desc">User memory profile + daily logs</div>
-            </div>
-            <span class="toggle-arrow open">&#9660;</span>
-          </div>
-          <div class="app-body">
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Models: <code>UserMemoryProfile</code>, <code>DailyLog</code></div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Read path: <code>reader.load_for_session()</code> &mdash; hydrate on Step 02</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Write path: <code>tasks.extract_and_update_memory</code> Celery task &mdash; dispatched on Step 14</div>
-              <div class="comp-status status-built">built</div>
-            </div>
-            <div class="component" data-layer="L2">
-              <div class="comp-dot partial"></div>
-              <div class="comp-name">n8n-era Supabase Memory workflow still active &mdash; investigation pending, likely orphan</div>
-              <div class="comp-status status-partial">audit</div>
-            </div>
-          </div>
-        </div>
-
-      </div>
-
-      <!-- DATA FLOW: QUERY PIPELINE -->
-      <div class="flow-section" data-layer="L2">
-        <div class="section-title">Query Pipeline &mdash; FalcoMain 14-step StepGraph</div>
-        <div class="flow-row">
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Input</div>
-            iPad &rarr; n8n forwarder
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step" data-layer="L2">
-            <div class="step-label">01&ndash;04</div>
-            Receive &middot; Hydrate memory &middot; Anonymise (seam) &middot; Classify intent
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step highlight" data-layer="L2">
-            <div class="step-label">05 Route</div>
-            Branch A / B / C / (D&rarr;A)
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-branch">
-            <div class="flow-branch-item">&#x1F464; <strong>A &middot; Persona</strong> &rarr; Groq llama-4-scout drafter</div>
-            <div class="flow-branch-item">&#x1F4DA; <strong>B &middot; Documents</strong> &rarr; OpenAI embed &rarr; Neo4j vector search &rarr; atoms cited <code>[1] [2]</code> &rarr; drafter</div>
-            <div class="flow-branch-item">&#x1F310; <strong>C &middot; Web</strong> &rarr; Perplexity sonar (20s timeout) &rarr; drafter</div>
-            <div class="flow-branch-item" style="opacity:0.55;">&#x1F4CA; <strong>D &middot; Calc</strong> &rarr; not implemented; downgrades to A</div>
-          </div>
-        </div>
-        <div class="flow-row" style="margin-top:14px;">
-          <div class="flow-step" data-layer="L2">
-            <div class="step-label">10&ndash;14</div>
-            Verify (seam) &middot; De-anonymise (seam) &middot; Persist &middot; Respond &middot; Memory write (Celery)
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Output</div>
-            <code>[{"output":"..."}]</code> back to iPad
-          </div>
-        </div>
-        <div style="font-size:11px; color:#7a6f98; margin-top:10px; padding-left:4px;">
-          Every run persists to <strong style="color:#C3A183;">agent_runs</strong> + <strong style="color:#C3A183;">agent_run_steps</strong> with <code>trace_id</code> via contextvars &middot; <code>manage.py replay_run &lt;id&gt;</code> for deterministic replay &middot; typical wall-clock 2&ndash;3s
-        </div>
-      </div>
-
-      <!-- DATA FLOW: DOCUMENT INDEXING -->
-      <div class="flow-section" style="margin-top:24px;" data-layer="L2">
-        <div class="section-title">Document Ingest Pipeline &mdash; vendor-free Python via Haiku 4.5</div>
-        <div class="flow-row">
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Upload</div>
-            <code>/admin/ingest/</code> or<br><code>manage.py ingest_pdf</code>
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step" data-layer="L2">
-            <div class="step-label">Chunk</div>
-            pypdf &middot; 15 pages/chunk<br><span style="font-size:10px; color:#7a6f98;">byte-level slices preserve page numbers</span>
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step highlight" data-layer="L2">
-            <div class="step-label">Extract</div>
-            Claude Haiku 4.5 (native PDF)<br><span style="font-size:10px; color:#7a6f98;">forced tool-use, cached system prompt</span>
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step" data-layer="L2">
-            <div class="step-label">Embed</div>
-            OpenAI <code>text-embedding-3-small</code><br><span style="font-size:10px; color:#7a6f98;">1536-dim per atom</span>
-          </div>
-          <div class="flow-arrow">&rarr;</div>
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Write</div>
-            Neo4j Aura<br><code>(Document)-[:HAS_SECTION]-&gt;(Section)-[:HAS_ATOM]-&gt;(Atom)</code>
-          </div>
-        </div>
-        <div style="font-size:11px; color:#7a6f98; margin-top:10px; padding-left:4px;">
-          One synchronous transaction per document &middot; per-chunk failures surfaced as <code>chunk_errors</code> &middot; re-ingest button wipes existing atoms for a doc_id then writes fresh &middot; ~$0.02/doc for a 3-page memo &middot; deactivated n8n <code>Ingest</code> workflow superseded
-        </div>
-      </div>
-
-      <!-- HOST CONFIG -->
-      <div class="flow-section" style="margin-top:24px;" data-layer="L3">
-        <div class="section-title">Host config &mdash; London EC2 <code>i-03284d4a97dfd1d37</code></div>
-        <div class="flow-row" style="flex-wrap:wrap;">
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Caddy snap</div>
-            <code>backend.falconium.ai</code> &rarr; 80, 443<br><span style="font-size:10px; color:#7a6f98;">/n8n/* &rarr; 5678 &middot; /ws/* &rarr; 8002 &middot; * &rarr; 8001</span>
-          </div>
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Gunicorn</div>
-            Django on 127.0.0.1:8001<br><span style="font-size:10px; color:#7a6f98;">--workers 2 --timeout 600</span>
-          </div>
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">n8n (docker)</div>
-            127.0.0.1:5678<br><span style="font-size:10px; color:#7a6f98;">forwarder only since 2026-05-04</span>
-          </div>
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Daphne</div>
-            WebSocket on 127.0.0.1:8002
-          </div>
-          <div class="flow-step" data-layer="L3">
-            <div class="step-label">Celery</div>
-            Redis-backed worker<br><span style="font-size:10px; color:#7a6f98;">async memory writes</span>
-          </div>
-        </div>
-        <div style="font-size:11px; color:#7a6f98; margin-top:10px; padding-left:4px;">
-          Caddyfile, regen helper, systemd drop-in, gunicorn unit live in repo at <code>deploy/host-config/</code> &middot; mirrored to <code>s3://falconium/system-backups/&lt;date&gt;/</code> &middot; the snap auto-regenerates <code>caddy.json</code> from the Caddyfile on every restart (ExecStartPre hook)
-        </div>
-      </div>
-
-    </div>
-
-    <!-- RIGHT: EXTERNAL SERVICES -->
-    <div>
-      <div class="section-title">External Services</div>
-
-      <div style="font-size:10px; color:#7a6f98; margin-bottom:8px; letter-spacing:1px; text-transform:uppercase;">LLM Providers</div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Gq</div>
-        <div>
-          <div class="svc-name">Groq</div>
-          <div class="svc-role">FalcoMain drafter (all branches)</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">llama-4-scout-17b-16e-instruct</div>
-        </div>
-      </div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(155,89,182,0.2); color:#9b59b6;">Cl</div>
-        <div>
-          <div class="svc-name">Anthropic Claude</div>
-          <div class="svc-role">FalcoDocs atom extraction (native PDF)</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">claude-haiku-4-5 &middot; $1/$5 per 1M tok</div>
-        </div>
-      </div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(46,204,113,0.2); color:#2ecc71;">OA</div>
-        <div>
-          <div class="svc-name">OpenAI</div>
-          <div class="svc-role">Atom embeddings (FalcoDocs)</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">text-embedding-3-small (1536-dim)</div>
-        </div>
-      </div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">Px</div>
-        <div>
-          <div class="svc-name">Perplexity</div>
-          <div class="svc-role">FalcoMain Branch C web search</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">sonar (20s timeout)</div>
-        </div>
-      </div>
-
-      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Audio & Voice — On-Device (iPad)</div>
-      <div class="ext-service" style="border-color:#27ae60;" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(39,174,96,0.2); color:#27ae60;">WK</div>
-        <div>
-          <div class="svc-name">WhisperKit</div>
-          <div class="svc-role">On-device STT (live on iPad)</div>
-          <div style="font-size:9px; color:#27ae60; margin-top:3px;">Shipped — replaces Groq Whisper</div>
-        </div>
-      </div>
-      <div class="ext-service" style="border-color:#27ae60;" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(39,174,96,0.2); color:#27ae60;">FA</div>
-        <div>
-          <div class="svc-name">FluidAudio</div>
-          <div class="svc-role">On-device TTS &amp; diarisation (live on iPad)</div>
-          <div style="font-size:9px; color:#27ae60; margin-top:3px;">Shipped — replaces Replicate WhisperX</div>
-        </div>
-      </div>
-      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Audio & Voice — Legacy (dead code)</div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.45;" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Gr</div>
-        <div>
-          <div class="svc-name">Groq Whisper</div>
-          <div class="svc-role">Fast Whisper transcription</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Legacy — superseded by WhisperKit. Dead code in <code>apps/chats/util.py</code></div>
-        </div>
-      </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.45;" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">Re</div>
-        <div>
-          <div class="svc-name">Replicate</div>
-          <div class="svc-role">WhisperX + speaker diarisation</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Legacy — superseded by FluidAudio. Dead code in <code>apps/chats/consumers.py</code></div>
-        </div>
-      </div>
-      <div class="ext-service" style="border-color:#e74c3c; opacity:0.5;" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(231,76,60,0.2); color:#e74c3c;">11</div>
-        <div>
-          <div class="svc-name">ElevenLabs</div>
-          <div class="svc-role">Voice synthesis</div>
-          <div style="font-size:9px; color:#e74c3c; margin-top:3px;">Configured but not in backend code</div>
-        </div>
-      </div>
-
-      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Integrations</div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(52,152,219,0.2); color:#3498db;">MS</div>
-        <div>
-          <div class="svc-name">Microsoft Graph</div>
-          <div class="svc-role">Outlook email (OAuth 2.0)</div>
-        </div>
-      </div>
-
-      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Storage & Data</div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(195,161,131,0.2); color:#C3A183;">N4</div>
-        <div>
-          <div class="svc-name">Neo4j Aura</div>
-          <div class="svc-role">FalcoDocs knowledge graph</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">FalcoNeo4j (4d95f6de) &middot; 1536-dim vector index</div>
-        </div>
-      </div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(230,126,34,0.2); color:#e67e22;">S3</div>
-        <div>
-          <div class="svc-name">AWS S3</div>
-          <div class="svc-role">File storage + system backups</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">s3://falconium/</div>
-        </div>
-      </div>
-      <div class="ext-service" data-layer="L3" style="opacity:0.55;">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(26,188,156,0.2); color:#1abc9c;">Wv</div>
-        <div>
-          <div class="svc-name">Weaviate</div>
-          <div class="svc-role">Legacy RAPTOR store (queued for removal)</div>
-          <div style="font-size:10px; color:#e67e22; margin-top:2px;">superseded by Neo4j Aura for chat retrieval</div>
-        </div>
-      </div>
-
-      <div style="font-size:10px; color:#7a6f98; margin:16px 0 8px; letter-spacing:1px; text-transform:uppercase;">Config & Secrets</div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(195,161,131,0.2); color:#C3A183;">SSM</div>
-        <div>
-          <div class="svc-name">AWS SSM Parameter Store</div>
-          <div class="svc-role">All <code>/falconium/*</code> secrets</div>
-          <div style="font-size:10px; color:#5a5080; margin-top:2px;">edited via <code>/admin/secrets/</code> &middot; TTL cache + invalidation</div>
-        </div>
-      </div>
-      <div class="ext-service" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="svc-icon" style="background:rgba(167,127,199,0.2); color:#a77fc7;">Sn</div>
-        <div>
-          <div class="svc-name">Sentry</div>
-          <div class="svc-role">Errors + traces</div>
-          <div style="font-size:10px; color:#e67e22; margin-top:2px;">backend errors currently land in iPad project (cleanup TODO)</div>
+    <div class="grid">
+      <div class="card" data-layer="l1">
+        <div class="card-title">Skills Library <span class="card-status"><span class="status-dot status-planned"></span>Planned</span></div>
+        <div class="card-meta">apps/agents/falco_main/skills/</div>
+        <div class="card-body">
+          Markdown files encoding expert banking knowledge — pitchbook structure, comps tables, transaction-cost presentation, CIM review, covenant extraction. Injected into the drafter LLM prompt via progressive disclosure based on intent classification.
+          <ul>
+            <li>Owned by Ilya, edited via Cowork or Claude Code</li>
+            <li>Versioned in the falconium_backend repo</li>
+            <li>No restart required — read at every request</li>
+          </ul>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- INFRASTRUCTURE BAR -->
-  <div style="margin-top:30px;">
-    <div class="section-title">Infrastructure Layer</div>
-    <div class="infra-bar">
-      <div class="infra-item" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="infra-icon">&#x1F418;</div>
-        <div class="infra-name">PostgreSQL 14.1</div>
-        <div class="infra-detail">Primary database</div>
+  <!-- LAYER 2 — HARNESS -->
+  <div class="layer-band layer-harness" data-layer-band="l2">
+    <div class="layer-header">
+      <span class="layer-tag l2">L2 · Harness</span>
+      <h2>FalcoMain Pipeline · Custom Step-Graph Runner</h2>
+      <span class="layer-sub">Ilya-led via Claude Code · Developer support · 14 named Steps · Live in production since 11 May 2026</span>
+    </div>
+
+    <div class="pipeline" data-layer="l2">
+      <div class="pipeline-row">
+        <div class="pipe-step"><div class="pn">01</div><div class="nm">Receive</div><div class="sub">run_id assigned</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pn">02</div><div class="nm">Hydrate</div><div class="sub">memory · §3 atoms</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step seam"><div class="pn">03</div><div class="nm">Anonymise</div><div class="sub">§9 chokepoint · seam</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pn">04</div><div class="nm">Classify</div><div class="sub">intent + confidence</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pn">05</div><div class="nm">Route</div><div class="sub">declarative rules.yaml</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step branch"><div class="pn">06–09</div><div class="nm">Branches A·B·C·D</div><div class="sub">persona / docs / web / calc</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step seam"><div class="pn">10</div><div class="nm">Verify</div><div class="sub">FalcoJudge seam</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step seam"><div class="pn">11</div><div class="nm">De-anonymise</div><div class="sub">paired · seam</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pn">12</div><div class="nm">Persist</div><div class="sub">agent_runs</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pn">13</div><div class="nm">Respond</div><div class="sub">to forwarder → iPad</div></div>
+        <div class="pipe-arrow">→</div>
+        <div class="pipe-step"><div class="pn">14</div><div class="nm">Memory write</div><div class="sub">async · Celery</div></div>
       </div>
-      <div class="infra-item" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="infra-icon">&#9889;</div>
-        <div class="infra-name">Redis</div>
-        <div class="infra-detail">Cache + message broker</div>
+    </div>
+
+    <div class="grid">
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Step-Graph Runner <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/agents/runner/</div>
+        <div class="card-body">
+          Custom thin runner — ~400 lines. Each Step is a named class with declared input/output schemas. Honours all six §11.1 properties: explicit graph, deterministic transitions, introspectable state, declarative routing, replayability, localised failure.
+          <ul>
+            <li><code>Step</code>, <code>StepGraph</code>, <code>Run</code>, <code>RunStep</code></li>
+            <li><code>./manage.py replay_run &lt;run_id&gt;</code> — deterministic replay</li>
+            <li><code>./manage.py render_graph falco_main</code> — SVG of the graph</li>
+            <li>~2–3 s wall-clock per chat (Groq ~800–1000 ms, audit row writes ~1–1.5 s)</li>
+          </ul>
+        </div>
       </div>
-      <div class="infra-item" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="infra-icon">&#x1F504;</div>
-        <div class="infra-name">Celery</div>
-        <div class="infra-detail">Background task queue</div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Drafter LLM Abstraction <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/agents/llm/drafter.py</div>
+        <div class="card-body">
+          Vendor-neutral interface. Live implementation calls Groq <code>qwen/qwen3-32b</code>. Same call signature for Anthropic and OpenAI when activated. Per §10, today's Groq-only behaviour is a configuration choice, not a code dependency.
+        </div>
       </div>
-      <div class="infra-item" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="infra-icon">&#x1F433;</div>
-        <div class="infra-name">Docker</div>
-        <div class="infra-detail">Containerised (7 services)</div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">FalcoDocs (Branch B) <span class="card-status"><span class="status-dot status-partial"></span>Partial</span></div>
+        <div class="card-meta">apps/agents/falco_docs/</div>
+        <div class="card-body">
+          Document retrieval active via Weaviate / RAPTOR chain. Typed structured handoff to a dedicated FalcoDocs Python agent in progress. Returns retrieved atoms with §3 metadata schema (event_time, ingest_time, source_id, source_kind, model_id).
+          <ul>
+            <li>Neo4j cutover decided April 2026 — ingest half done; Django retrieval still on Weaviate</li>
+          </ul>
+        </div>
       </div>
-      <div class="infra-item" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="infra-icon">&#x1F680;</div>
-        <div class="infra-name">Daphne (ASGI)</div>
-        <div class="infra-detail">HTTP + WebSocket server</div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">WebSearch tool (Branch C) <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/agents/tools/web_search.py</div>
+        <div class="card-body">
+          Calls Perplexity <code>sonar-pro</code> with key from SSM. Returns sources with §3 metadata. Drafter LLM consumes results.
+        </div>
       </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Calculation tool (Branch D) <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/agents/tools/calculation.py</div>
+        <div class="card-body">
+          Restricted Python sandbox. Per §5, the LLM never produces numbers — calculation node does. Provenance attached to every numerical output.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Memory module — read+write <span class="card-status"><span class="status-dot status-partial"></span>Partial · hydrate + write live</span></div>
+        <div class="card-meta">apps/memory/</div>
+        <div class="card-body">
+          Step 02 hydrates context from <code>memory_user_profile</code> and <code>memory_daily_log</code> at session start. Step 14 dispatches async Celery write. Three memory types per Memory Architecture v1 — <em>semantic</em>, <em>episodic</em>, <em>procedural</em> — specified but Phase 1 full deployment pending. The Supabase / MongoDB pattern from the n8n era is dropped.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Routing rules <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/agents/routing/rules.yaml</div>
+        <div class="card-body">
+          Declarative YAML. One readable file. Decides which branch runs based on intent and confidence. Editable by Ilya without touching runner code.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">FalcoMain endpoint <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">POST /api/v1/agents/falco/main/</div>
+        <div class="card-body">
+          The user-facing chat endpoint. Accepts the n8n-shaped request, returns the n8n-shaped response. Receives traffic via the n8n forwarder at <code>backend.falconium.ai/n8n/webhook/df5cb261-…</code>. iPad wire contract unchanged.
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout">
+      <strong>Cutover completed 7 May 2026.</strong> The live <code>MAIN_AGENT_Falconium</code> n8n workflow is now a 2-node forwarder (Webhook → HTTP Request → /api/v1/agents/falco/main/). The original 20-node workflow is preserved as <code>MAIN_AGENT_Falconium [BACKUP pre-rebuild]</code> (id <code>hAC7u2sf0mMBkuFv</code>) for one-click revert. Pipeline stable since 11 May. iPad app unchanged throughout.
     </div>
   </div>
 
-  <!-- ISSUES & INCONSISTENCIES -->
-  <div class="issues-panel">
-    <div class="issues-header" onclick="toggleIssues()">
-      &#x26A0; Issues, Gaps &amp; Inconsistencies Found in Codebase
-      <span class="toggle-arrow open" id="issues-arrow">&#9660;</span>
+  <!-- SEAM LAYER -->
+  <div class="layer-band layer-seam" data-layer-band="seam">
+    <div class="layer-header">
+      <span class="layer-tag seam">Seams</span>
+      <h2>Future Layers — designed-in pass-throughs today</h2>
+      <span class="layer-sub">Specified in the architecture · activated by future build phases without restructuring</span>
     </div>
-    <div class="issues-body" id="issues-body">
+    <div class="grid">
 
-      <div class="issue-item">
-        <div class="issue-severity sev-high">HIGH</div>
-        <div class="issue-text">
-          <strong>Duplicate RAPTOR agents.</strong>
-          The <code>chats</code> app has its own <code>RaptorAIAgent</code> (raptor_chain.py) and the <code>mcp_server</code> app has two separate copies (mcr_internal_documents.py, mcr_external_documents.py). These are independent implementations of the same logic — changes to one don't propagate to the other. This will cause bugs as the system evolves.
+      <div class="card future" data-layer="seam">
+        <div class="card-title">Anonymisation chokepoint · §9</div>
+        <div class="card-meta">Steps 03 and 11 of the pipeline</div>
+        <div class="card-body">
+          Single point in front of every cloud LLM call where regulated entities are masked, and a paired step where they are reinjected. Day one: pass-through that records pre-anonymisation state. Activates when the anonymisation system is deployed — the chokepoint position never moves.
         </div>
       </div>
 
-      <div class="issue-item">
-        <div class="issue-severity sev-high">HIGH</div>
-        <div class="issue-text">
-          <strong>Emails are an island.</strong>
-          The <code>mails</code> app is fully stateless — it stores nothing locally and has zero connection to the AI pipeline. Emails can't be searched by Falconium's AI, can't be referenced in conversations, and aren't indexed in Weaviate. The AI can't help with email-related queries like "summarise my recent emails about Project X."
+      <div class="card future" data-layer="seam">
+        <div class="card-title">FalcoJudge · §6</div>
+        <div class="card-meta">Step 10 of the pipeline · apps/agents/falco_judge/ (planned)</div>
+        <div class="card-body">
+          Multi-agent verification. The judge agent reviews the drafter's output for factual coherence, source-grounding, and counter-argument coverage on position-taking outputs. Different vendor than the drafter (per §10). Day one: pass-through stub.
         </div>
       </div>
 
-      <div class="issue-item">
-        <div class="issue-severity sev-high">HIGH</div>
-        <div class="issue-text">
-          <strong>Meeting transcripts are an island.</strong>
-          The <code>meetings</code> app stores transcripts as a TextField, but they're never indexed into Weaviate. The AI can't search meeting content, extract action items, or answer questions like "what did we discuss about the deadline?"
+      <div class="card future" data-layer="seam">
+        <div class="card-title">FalcoMath · §5</div>
+        <div class="card-meta">Branch D · today the calculation tool, tomorrow a full numerical agent</div>
+        <div class="card-body">
+          Branch D becomes a richer numerical-reasoning agent over time — multi-step financial calculations with intermediate verification. The Step 09 seam preserves the position so the upgrade is in-place.
         </div>
       </div>
 
-      <div class="issue-item">
-        <div class="issue-severity sev-med">MEDIUM</div>
-        <div class="issue-text">
-          <strong>Dead code in chats — old AIAgent.</strong>
-          The <code>chats/ai_services/main.py</code> contains the original <code>AIAgent</code> class with its own routing logic, alongside the newer <code>RaptorAIAgent</code>. The old <code>LLMResponseView</code> endpoint is commented out in urls.py. This dead code creates confusion about which pipeline is active.
+      <div class="card future" data-layer="seam">
+        <div class="card-title">Counter-argument pass · §6</div>
+        <div class="card-meta">Optional branch from Step 10 for position-taking outputs</div>
+        <div class="card-body">
+          When a draft takes a position (a recommendation, a buy/sell, a "this deal is risky"), a forced counter-argument pass runs through a fresh prompt. Reduces single-perspective bias.
         </div>
       </div>
 
-      <div class="issue-item">
-        <div class="issue-severity sev-med">MEDIUM</div>
-        <div class="issue-text">
-          <strong>FalconiumConfig type choices don't match usage.</strong>
-          The model defines types like <code>"frontend_model"</code>, <code>"standard_files_retrieval"</code>, etc. But the chats AI code calls <code>get_active_prompt()</code> with keys like <code>"routing"</code>, <code>"format_retrival_query"</code> — these don't appear in the defined type choices. The lookup relies on a generic query that works despite the mismatch, but it's fragile.
+      <div class="card future" data-layer="seam">
+        <div class="card-title">Financial Observatory · §15</div>
+        <div class="card-meta">Stretch / post-MVP · apps/observatory/ (planned)</div>
+        <div class="card-body">
+          Long-term goal. Continuously-updated reflective layer over the user's corpus. Earliest manifestation: <em>nightly contemplation</em> — scheduled reflective pass producing a morning observation list with full provenance. Specified in v1.1 of the architecture document so it can be promoted into MVP scope by an explicit decision.
         </div>
       </div>
 
-      <div class="issue-item">
-        <div class="issue-severity sev-med">MEDIUM</div>
-        <div class="issue-text">
-          <strong>Two Weaviate schemas for essentially the same purpose.</strong>
-          User files go into <code>External_documents</code> (with user_id) and system docs go into <code>RAPTORNode</code> (without user_id). The chats RAPTOR agent only searches RAPTORNode. The mcp_server has separate agents for each. This split means a user asking "search all documents" only sees one set.
-        </div>
-      </div>
-
-      <div class="issue-item">
-        <div class="issue-severity sev-med">MEDIUM</div>
-        <div class="issue-text">
-          <strong>n8n orchestration invisible to backend.</strong>
-          The CLAUDE.md describes n8n as the MVP orchestration layer, but there's no n8n integration in the Django code. n8n presumably calls the API externally, but the backend has no awareness of multi-agent workflows, handoffs, or orchestration state.
-        </div>
-      </div>
-
-      <div class="issue-item">
-        <div class="issue-severity sev-low">LOW</div>
-        <div class="issue-text">
-          <strong>Password reset emails go to ADMIN_EMAILS, not the user.</strong>
-          In <code>accounts/tasks.py</code>, the reset link is sent to <code>settings.ADMIN_EMAILS</code> rather than the requesting user's email. Likely a development shortcut but will need fixing before any client deployment.
-        </div>
-      </div>
-
-      <div class="issue-item">
-        <div class="issue-severity sev-low">LOW</div>
-        <div class="issue-text">
-          <strong>JWT access tokens valid for 70 days.</strong>
-          <code>ACCESS_TOKEN_LIFETIME = timedelta(days=70)</code> is extremely long for a security-sensitive financial application. Industry standard is 15-60 minutes with refresh tokens handling re-authentication.
-        </div>
-      </div>
-
-      <div class="issue-item">
-        <div class="issue-severity sev-low">LOW</div>
-        <div class="issue-text">
-          <strong>CORS allows all origins.</strong>
-          <code>CORS_ORIGIN_ALLOW_ALL = True</code> is fine for development but must be restricted before any external deployment.
-        </div>
-      </div>
-
-      <div class="issue-item">
-        <div class="issue-severity sev-low">LOW</div>
-        <div class="issue-text">
-          <strong>ElevenLabs voice synthesis not in backend.</strong>
-          Referenced in architecture docs and the iPad app likely calls it directly, but there's no backend endpoint for voice generation. This may be intentional (client-side) but worth noting.
+      <div class="card future" data-layer="seam">
+        <div class="card-title">Voice Registry</div>
+        <div class="card-meta">apps/voice_registry/ (planned)</div>
+        <div class="card-body">
+          Backend speaker-embedding registry to support meeting-mode diarisation. Embeddings persist across meetings; speakers named post-meeting are recognised in future ones. Required before meeting transcription quality stabilises.
         </div>
       </div>
 
     </div>
   </div>
 
-  <!-- CROSS-APP DEPENDENCY MAP -->
-  <div style="margin-top:30px;">
-    <div class="section-title">Cross-App Dependencies</div>
-    <div style="background:#251e40; border:1px solid #3a2f5a; border-radius:8px; padding:20px; font-size:13px; line-height:2; color:#d0c8e8;">
-      <div style="display:grid; grid-template-columns: 200px 1fr; gap:8px 20px;">
-        <div style="color:#3498db; font-weight:600;">accounts.User</div>
-        <div>&rarr; used by <strong>all 5 other apps</strong> (FK in conversations, messages, projects, tasks, files, meetings, participants)</div>
-
-        <div style="color:#2ecc71; font-weight:600;">services.FalconiumConfig</div>
-        <div>&rarr; used by <strong>chats</strong> (loads prompts for routing, Q&A, retrieval, search)</div>
-
-        <div style="color:#2ecc71; font-weight:600;">services.PromptSetting</div>
-        <div>&rarr; used by <strong>chats</strong> (RAPTOR search params) and <strong>mcp_server</strong> (RAPTOR search params)</div>
-
-        <div style="color:#9b59b6; font-weight:600;">chats.QuestionLLM</div>
-        <div>&rarr; used by <strong>mcp_server</strong> (logs tool invocations)</div>
-
-        <div style="color:#9b59b6; font-weight:600;">chats.ai_services.*</div>
-        <div>&rarr; used by <strong>mcp_server</strong> (GeneralAnthropicChain, PerplexityInternetChain)</div>
-
-        <div style="color:#2ecc71; font-weight:600;">services.Project</div>
-        <div>&rarr; used by <strong>meetings</strong> (Meeting.project FK)</div>
-
-        <div style="color:#f1c40f; font-weight:600;">meetings.pagination</div>
-        <div>&rarr; used by <strong>mails</strong> (EmailPageNumberPagination — oddly defined in meetings, used in mails)</div>
-
-        <div style="color:#e67e22; font-weight:600;">mails</div>
-        <div>&rarr; <em style="color:#e67e22;">connects only to accounts (for OAuth tokens) — no other app dependencies</em></div>
-      </div>
+  <!-- LAYER 3 — INFRASTRUCTURE -->
+  <div class="layer-band layer-infra" data-layer-band="l3">
+    <div class="layer-header">
+      <span class="layer-tag l3">L3 · Infrastructure</span>
+      <h2>Django Apps · Data Layer · Integrations · Hosting</h2>
+      <span class="layer-sub">Developer-owned · Singularis (Mikhail backend, Evgeny iPad) · London EC2</span>
     </div>
+
+    <h3 class="subhead">Django apps</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">accounts <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/accounts/</div>
+        <div class="card-body">
+          User auth (JWT), profiles, Microsoft OAuth tokens.
+          <ul>
+            <li>Models: <code>User</code> (email auth, JWT, Outlook tokens, avatar, wiki_storage_backend)</li>
+            <li>OAuth callback: <code>/oauth/microsoft/callback/</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">chats <span class="card-status"><span class="status-dot status-partial"></span>Partial · legacy cleanup pending</span></div>
+        <div class="card-meta">apps/chats/</div>
+        <div class="card-body">
+          Conversations, messages, audio transcription WebSocket. The legacy <code>LLMRaptorView</code> and routing-style <code>AIAgent</code> chains are queued for removal once the FalcoMain pipeline is confirmed fully stable.
+          <ul>
+            <li>Models: <code>Conversations</code>, <code>Message</code>, <code>QuestionLLM</code>, <code>PromptExample</code>, <code>AIAgentLog</code></li>
+            <li>WebSocket: <code>/ws/transcribe/</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">agents <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/agents/</div>
+        <div class="card-body">
+          Houses the FalcoMain 14-step pipeline, step-graph runner, drafter LLM abstraction, FalcoDocs, WebSearch, Calculation tool, and FalcoJudge seam. The L2 harness layer's home in code. Live since 11 May 2026.
+          <ul>
+            <li>Audit tables: <code>agent_runs</code>, <code>agent_run_steps</code>, <code>agent_routing_decisions</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">memory <span class="card-status"><span class="status-dot status-partial"></span>Partial · hydrate + write live</span></div>
+        <div class="card-meta">apps/memory/</div>
+        <div class="card-body">
+          Read (Step 02 hydrate) and async write (Step 14 Celery) operational in the FalcoMain pipeline. Full Memory Architecture Phase 1 — UserMemoryProfile, DailyLog, MemoryEntry models with bootstrap loading and session snapshots — pending. Replaces the n8n-era Supabase/MongoDB pattern.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">wiki <span class="card-status"><span class="status-dot status-built"></span>Built · deployed 22 May</span></div>
+        <div class="card-meta">apps/wiki/ · /api/v1/wiki/</div>
+        <div class="card-body">
+          Runtime Wiki: per-user structured knowledge store that auto-populates from conversations, meetings, documents, and projects.
+          <ul>
+            <li>Models: <code>WikiPage</code>, <code>WikiFieldProvenance</code>, <code>WikiClarification</code></li>
+            <li>File watcher daemon (<code>falconium-wiki-watcher.service</code>) running on EC2 — inotify bridge updates Postgres + Neo4j on every file write</li>
+            <li>REST API: list, detail, PATCH field (with provenance stamp), soft-delete, restore, search, conversation resume</li>
+            <li>Channels consumer: real-time push to iPad on wiki changes</li>
+            <li>Celery: <code>wiki_lint_nightly</code> (04:00 Rome), <code>wiki_commit_and_push_all</code> (every 5 min)</li>
+            <li>291 wiki pages populated (9 project, 229 conversation, 50 meeting, 3 document)</li>
+            <li>Wiki folder on EC2: <code>/opt/falconium/wikis/admin_2/</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">meetings <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/meetings/</div>
+        <div class="card-body">
+          Meeting records, transcripts, speaker-attributed messages, auto-generated tasks. WebSocket consumer for streaming transcription.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">mails <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/mails/</div>
+        <div class="card-body">
+          Microsoft Graph integration. Read, send, reply, bulk operations via OAuth.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">mcp_server <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/mcp_server/</div>
+        <div class="card-body">
+          Model Context Protocol — exposes AI tools (document retrieval, web search, Q&amp;A) as a standardised interface for LLMs that support MCP natively.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">services <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">apps/services/</div>
+        <div class="card-body">
+          Projects, tasks, document management, file uploads, system prompt configuration.
+          <ul>
+            <li><strong>26 May:</strong> <code>wiki_slug</code> and <code>wiki_summary</code> added to <code>ProjectSerializer</code> and <code>ProjectListSerializer</code> — wiki enrichment live in the projects API</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">Data layer</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">PostgreSQL 16 (RDS) <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Primary relational store · eu-west-2</div>
+        <div class="card-body">
+          Users, conversations, messages, projects, meetings, documents. 37 tables; 48 MB.
+          <ul>
+            <li><strong>FalcoMain audit trail:</strong> <code>agent_runs</code>, <code>agent_run_steps</code>, <code>agent_routing_decisions</code> — append-only</li>
+            <li><strong>Wiki tables:</strong> <code>wiki_wikpage</code>, <code>wiki_wikifieldprovenance</code>, <code>wiki_wikiclarification</code></li>
+            <li>Daily <code>pg_dump</code> to <code>/opt/backups/</code> on EC2; pre-rebuild dump at <code>SHA-256 cf7a57af…d4814</code></li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Neo4j Aura <span class="card-status"><span class="status-dot status-partial"></span>Ingest only</span></div>
+        <div class="card-meta">Knowledge-graph · 4d95f6de.databases.neo4j.io</div>
+        <div class="card-body">
+          Populated by the n8n <code>Ingest</code> workflow (LlamaParse → Neo4j) and by the wiki watcher (wiki namespace, tenancy-guarded). Django retrieval cutover from Weaviate — decided April 2026, not yet started. Weaviate remains the active retrieval store.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Weaviate <span class="card-status"><span class="status-dot status-built"></span>Built · active production retrieval</span></div>
+        <div class="card-meta">Self-hosted on EC2 · hybrid 75/25 BM25+vector</div>
+        <div class="card-body">
+          Serves all current document retrieval via <code>raptor_chain.py</code>. Remains live until the Django → Neo4j retrieval cutover is complete.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Redis <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Cache + Celery broker</div>
+        <div class="card-body">
+          Backs Celery (memory write, wiki lint, wiki git sync, ingest callbacks) and Django Channels (transcription WebSocket, wiki consumer).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">AWS S3 <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">File storage</div>
+        <div class="card-body">
+          Document uploads, meeting recordings, attachments. Lifecycle policies for cost control.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">AWS SSM Parameter Store <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Unified secrets store · KMS-encrypted · eu-west-2</div>
+        <div class="card-body">
+          31 <code>/falconium/*</code> parameters migrated from <code>us-east-1 → eu-west-2</code> on 7 May 2026. Single source of truth for every credential — backend, iPad build-time. Backend reads via <code>config/load_environments.py</code>.
+          <ul>
+            <li>Includes Neo4j, Groq, OpenAI, Anthropic, Perplexity, Sentry, DB, Redis, wiki params</li>
+            <li>Old <code>us-east-1</code> copies pending deletion after sustained production health</li>
+            <li>Admin form at <code>/admin/secrets/</code> planned — not yet built</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">CloudWatch Logs <span class="card-status"><span class="status-dot status-planned"></span>Planned</span></div>
+        <div class="card-meta">Centralised structured log destination</div>
+        <div class="card-body">
+          Filebeat ships JSON-formatted Django stdout to CloudWatch. Searchable from AWS console; queryable by <code>trace_id</code> for end-to-end debugging.
+        </div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">Integrations</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Self-hosted n8n <span class="card-status"><span class="status-dot status-built"></span>Built · thin forwarder for chat</span></div>
+        <div class="card-meta">backend.falconium.ai/n8n</div>
+        <div class="card-body">
+          FalcoMain: now a 2-node forwarder only (Webhook → HTTP Request → Django). Continues to host the <code>Ingest</code> document pipeline (LlamaParse → Neo4j) and <code>FalcoEmotions</code> for emotion classification — both out of scope for the FalcoMain rebuild.
+          <ul>
+            <li>Backup workflow <code>MAIN_AGENT_Falconium [BACKUP pre-rebuild]</code> retained for one-click revert</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">LlamaParse <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Document parsing</div>
+        <div class="card-body">
+          Webhook callback into the n8n <code>Ingest</code> pipeline. Out of scope for the FalcoMain rebuild.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Microsoft Graph <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Outlook email · OAuth 2.0</div>
+        <div class="card-body">
+          Tokens stored in <code>accounts</code>. Used by <code>mails</code> for read/send/reply/bulk operations. Entra app registration rebuilt April 2026 under Ilya's tenant.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Sentry <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Error capture · trace ID propagated</div>
+        <div class="card-body">
+          Both backend and iPad. Trace IDs set on every event so a misbehaving chat in Sentry links directly to its <code>agent_runs</code> row. DSN rotated May 2026; new DSN held in SSM at <code>/falconium/SENTRY_DSN</code>.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Cloud LLMs <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Groq · Anthropic · OpenAI · Perplexity</div>
+        <div class="card-body">
+          Reached only through the drafter LLM abstraction. Keys held in SSM. Live drafter: Groq <code>qwen/qwen3-32b</code>. Anthropic and OpenAI activate as model abstraction matures.
+        </div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">Hosting</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">London EC2 <span class="card-status"><span class="status-dot status-built"></span>Built · operational</span></div>
+        <div class="card-meta">eu-west-2b · t2.medium · 13.42.64.100</div>
+        <div class="card-body">
+          AWS account 471112907118. Hosts Django (gunicorn + daphne), n8n, Weaviate, Redis, Filebeat, wiki watcher daemon. Domain: <code>backend.falconium.ai</code>. Caddy reverse proxy.
+          <ul>
+            <li>Wiki files: <code>/opt/falconium/wikis/</code></li>
+            <li>Backups: <code>/opt/backups/</code> (daily pg_dump)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">CodeDeploy pipeline <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">AWS · eu-west-2 · push-to-main triggers deploy</div>
+        <div class="card-body">
+          Backend deploys via CodeDeploy on git push to main. Git tag <code>pre-falcomain-rebuild</code> (commit <code>f62e39c</code>) is the rollback anchor. Pre-client phase: no staging environment.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">iPad — open repoint <span class="card-status"><span class="status-dot status-partial"></span>Partial · REST still on Singularis</span></div>
+        <div class="card-meta">Non-chat endpoints</div>
+        <div class="card-body">
+          Chat path now goes through <code>backend.falconium.ai</code> (Django). All other REST and the audio WebSocket still hit the Singularis Kubernetes cluster (<code>falconium.k8s.singularis-lab.com</code>). Wiki enrichment fields (<code>wiki_slug</code>, <code>wiki_summary</code>) will not reach the iPad until the non-chat REST endpoints are repointed — the key outstanding unlock.
+        </div>
+      </div>
+
+    </div>
+
   </div>
 
 </div>
+
+<footer>
+  <p>Falconium Backend Architecture · Current state · 2 June 2026</p>
+  <p style="margin-top: 6px; font-size: 10.5px;">L1 Skills (Ilya-owned) · L2 Harness (Ilya-led via Claude Code) · L3 Infrastructure (Singularis-owned) · Seams = future layers, designed in today</p>
+</footer>
 
 <script>
-let currentLayerFilter = null;
+  function filterLayer(layer) {
+    document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
+    const map = { all: '.layer-btn.all', l1: '.layer-btn.l1', l2: '.layer-btn.l2', l3: '.layer-btn.l3', seam: '.layer-btn.seam' };
+    document.querySelector(map[layer]).classList.add('active');
 
-function toggleApp(el) {
-  const body = el.querySelector('.app-body');
-  const arrow = el.querySelector('.toggle-arrow');
-  if (body.classList.contains('collapsed')) {
-    body.classList.remove('collapsed');
-    arrow.classList.add('open');
-  } else {
-    body.classList.add('collapsed');
-    arrow.classList.remove('open');
-  }
-}
-
-function toggleIssues() {
-  const body = document.getElementById('issues-body');
-  const arrow = document.getElementById('issues-arrow');
-  if (body.style.display === 'none') {
-    body.style.display = 'block';
-    arrow.classList.add('open');
-  } else {
-    body.style.display = 'none';
-    arrow.classList.remove('open');
-  }
-}
-
-function filterByLayer(layer) {
-  currentLayerFilter = layer;
-
-  // Update button states
-  const buttons = document.querySelectorAll('.layer-filter-btn');
-  buttons.forEach(btn => btn.classList.remove('active'));
-
-  if (layer === null) {
-    document.querySelector('.layer-filter-btn.reset').classList.add('active');
-    // Remove dimming from all elements
-    document.querySelectorAll('[data-layer]').forEach(el => {
-      el.classList.remove('layer-dimmed');
+    document.querySelectorAll('.layer-band').forEach(band => {
+      const dim = layer !== 'all' && band.getAttribute('data-layer-band') !== layer;
+      band.classList.toggle('dimmed', dim);
     });
-  } else {
-    // Add active class to the clicked button
-    document.querySelector(`.layer-filter-btn.${layer.toLowerCase()}`).classList.add('active');
-
-    // Dim all elements that don't match the selected layer
     document.querySelectorAll('[data-layer]').forEach(el => {
-      if (el.getAttribute('data-layer') !== layer) {
-        el.classList.add('layer-dimmed');
-      } else {
-        el.classList.remove('layer-dimmed');
-      }
+      if (el.classList.contains('layer-btn')) return;
+      const dim = layer !== 'all' && el.getAttribute('data-layer') !== layer;
+      el.classList.toggle('dimmed', dim);
     });
   }
-}
-
-// Initialize with all layers visible
-document.addEventListener('DOMContentLoaded', function() {
-  document.querySelector('.layer-filter-btn.reset').classList.add('active');
-});
 </script>
 
 </body>
