@@ -1,1412 +1,682 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en-GB">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Falconium Frontend Architecture</title>
+<title>Falconium Frontend Architecture — Future State</title>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg:           #1a1428;
+    --bg-card:      #221a3a;
+    --bg-card-2:    #2a1f47;
+    --bg-seam:      #2b1f54;
+    --border:       #3a2f5a;
+    --border-2:     #4d3f73;
+    --text:         #e8e4f0;
+    --text-dim:     #b8b0cc;
+    --text-faint:   #7a6e8a;
+    --gold:         #C3A183;
+    --gold-dim:     #8a715b;
+    --teal:         #7fb6a8;
+    --purple:       #a77fc7;
+    --status-built: #6abf7a;
+    --status-partial: #d4a85a;
+    --status-missing: #c45a6a;
+    --status-planned: #6a8ec4;
+  }
+
   body {
+    background: var(--bg);
+    color: var(--text);
     font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-    background: #1a1428;
-    color: #e8e4f0;
-    overflow-x: hidden;
+    line-height: 1.55;
+    font-size: 14px;
+    min-height: 100vh;
   }
 
-  /* Header */
-  .header {
+  header {
     background: linear-gradient(135deg, #2B1F54 0%, #1a1428 100%);
-    border-bottom: 3px solid #C3A183;
-    padding: 20px 40px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
+    border-bottom: 3px solid var(--gold);
+    padding: 32px 56px 24px;
   }
-  .header h1 {
-    font-size: 22px;
-    font-weight: 600;
-    color: #C3A183;
-    letter-spacing: 1px;
+  header h1 { color: var(--gold); font-size: 26px; font-weight: 700; letter-spacing: 0.5px; }
+  header .subtitle { color: var(--text-dim); font-size: 14px; margin-top: 6px; }
+  header .meta {
+    margin-top: 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 12px;
+    font-size: 12px; color: var(--text-faint);
   }
-  .header .subtitle {
-    font-size: 13px;
-    color: #9a8fb8;
-    margin-top: 2px;
-  }
-  .header .date {
-    font-size: 12px;
-    color: #7a6f98;
-  }
-  .header-nav {
-    font-size: 13px;
-  }
-  .header-nav a {
-    color: #C3A183;
-    text-decoration: none;
-    transition: color 0.2s;
-  }
-  .header-nav a:hover {
-    color: #e8c5a8;
-  }
+  header .nav-link { color: var(--gold); text-decoration: none; font-weight: 500; }
+  header .nav-link:hover { text-decoration: underline; }
 
-  /* Legend */
   .legend {
-    background: #221a3a;
-    border-bottom: 1px solid #3a2f5a;
-    padding: 14px 40px;
+    background: var(--bg-card);
+    border-bottom: 1px solid var(--border);
+    padding: 18px 56px;
   }
   .legend-row {
-    display: flex;
-    gap: 24px;
-    flex-wrap: wrap;
-    align-items: center;
-    margin-bottom: 12px;
-  }
-  .legend-row:last-child {
-    margin-bottom: 0;
-  }
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 12px;
-    color: #b0a8c8;
-  }
-  .legend-dot {
-    width: 14px;
-    height: 14px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-
-  /* Layer filter buttons */
-  .layer-filter {
-    display: flex;
-    gap: 12px;
-    align-items: center;
-  }
-  .layer-filter-label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #9a8fb8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-right: 4px;
-  }
-  .layer-btn {
-    font-size: 11px;
-    font-weight: 600;
-    padding: 6px 12px;
-    border: 1.5px solid;
-    border-radius: 12px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    white-space: nowrap;
-    background: transparent;
-    letter-spacing: 0.5px;
-  }
-  .layer-btn-l1 {
-    border-color: #C3A183;
-    color: #C3A183;
-  }
-  .layer-btn-l1:hover:not(.disabled) {
-    background: rgba(195, 161, 131, 0.1);
-  }
-  .layer-btn-l1.active {
-    background: #C3A183;
-    color: #1a1428;
-  }
-  .layer-btn-l2 {
-    border-color: #2dd4bf;
-    color: #2dd4bf;
-  }
-  .layer-btn-l2:hover:not(.disabled) {
-    background: rgba(45, 212, 191, 0.1);
-  }
-  .layer-btn-l2.active {
-    background: #2dd4bf;
-    color: #1a1428;
-  }
-  .layer-btn-l3 {
-    border-color: #7b93db;
-    color: #7b93db;
-  }
-  .layer-btn-l3:hover:not(.disabled) {
-    background: rgba(123, 147, 219, 0.1);
-  }
-  .layer-btn-l3.active {
-    background: #7b93db;
-    color: #1a1428;
-  }
-  .layer-btn.all {
-    border-color: #7a6f98;
-    color: #7a6f98;
-  }
-  .layer-btn.all:hover {
-    background: rgba(122, 111, 152, 0.1);
-  }
-  .layer-btn.all.active {
-    background: #7a6f98;
-    color: #1a1428;
-  }
-  .layer-btn.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-  .layer-btn.disabled:hover {
-    background: transparent !important;
-  }
-  .tooltip {
-    position: relative;
-  }
-  .tooltip:hover::after {
-    content: attr(data-tooltip);
-    position: absolute;
-    bottom: 120%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #2f2348;
-    color: #d0c8e8;
-    padding: 6px 10px;
-    border-radius: 4px;
-    font-size: 10px;
-    white-space: nowrap;
-    border: 1px solid #3a2f5a;
-    z-index: 1000;
-  }
-
-  /* Canvas */
-  .canvas {
-    padding: 30px 40px;
-    min-height: calc(100vh - 140px);
-    position: relative;
-  }
-
-  /* Section titles */
-  .section-title {
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 2px;
-    text-transform: uppercase;
-    color: #7a6f98;
-    margin-bottom: 16px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #2f2650;
-  }
-
-  /* Grid layout */
-  .main-grid {
-    display: grid;
-    grid-template-columns: 200px 1fr 240px;
-    gap: 30px;
-    position: relative;
-    z-index: 2;
-  }
-
-  /* Layer indicator badge */
-  .layer-badge {
-    font-size: 9px;
-    font-weight: 700;
-    letter-spacing: 0.5px;
-    padding: 2px 7px;
-    border-radius: 10px;
-    color: #1a1428;
-    white-space: nowrap;
-  }
-  .layer-badge.l1 { background: #C3A183; }
-  .layer-badge.l2 { background: #2dd4bf; }
-  .layer-badge.l3 { background: #7b93db; }
-
-  /* App boxes */
-  .app-box {
-    background: #251e40;
-    border: 1px solid #3a2f5a;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: all 0.2s ease;
-    cursor: pointer;
-    margin-bottom: 16px;
-    position: relative;
-  }
-  .app-box[data-layer] {
-    border-left: 3px solid;
-  }
-  .app-box[data-layer="L1"] {
-    border-left-color: #C3A183;
-  }
-  .app-box[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .app-box[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .app-box:hover {
-    border-color: #C3A183;
-    box-shadow: 0 0 20px rgba(195, 161, 131, 0.1);
-  }
-  .app-header {
-    padding: 14px 16px 10px;
-    border-bottom: 1px solid #3a2f5a;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    position: relative;
-  }
-  .app-icon {
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 15px;
-    font-weight: 700;
-    flex-shrink: 0;
-  }
-  .app-name {
-    font-size: 14px;
-    font-weight: 600;
-    color: #e8e4f0;
-    flex: 1;
-  }
-  .app-desc {
-    font-size: 11px;
-    color: #8a7faa;
-    margin-top: 2px;
-  }
-  .app-body {
-    padding: 12px 16px;
-  }
-  .app-body.collapsed {
-    display: none;
-  }
-
-  /* Module grid */
-  .modules-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 16px;
-    margin-bottom: 20px;
-  }
-
-  /* Home module special styling */
-  .app-box.home-module {
-    grid-column: 1 / -1;
-  }
-
-  /* Screen list */
-  .screen-group {
-    margin-bottom: 12px;
-  }
-  .screen-group-title {
-    font-size: 10px;
-    font-weight: 600;
-    color: #9a8fb8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 6px 0;
-    margin-bottom: 4px;
-    border-left: 2px solid #C3A183;
-    padding-left: 8px;
-  }
-  .screen-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 4px 0;
-    padding-left: 8px;
-    font-size: 11px;
-  }
-  .screen-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    margin-top: 4px;
-    flex-shrink: 0;
-  }
-  .screen-dot.built { background: #2ecc71; }
-  .screen-dot.planned { background: #3498db; }
-  .screen-name {
-    color: #d0c8e8;
-    flex: 1;
-  }
-
-  /* Component items inside apps */
-  .component {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 6px 0;
-    border-bottom: 1px solid #2f2650;
-    font-size: 12px;
-  }
-  .component:last-child { border-bottom: none; }
-  .comp-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    margin-top: 5px;
-    flex-shrink: 0;
-  }
-  .comp-dot.active { background: #2ecc71; }
-  .comp-dot.partial { background: #f39c12; }
-  .comp-dot.missing { background: #e74c3c; }
-  .comp-dot.planned { background: #3498db; }
-  .comp-name {
-    color: #d0c8e8;
-    flex: 1;
-  }
-  .comp-status {
-    font-size: 10px;
-    padding: 1px 6px;
-    border-radius: 3px;
-    white-space: nowrap;
-  }
-  .status-built { background: rgba(46, 204, 113, 0.15); color: #2ecc71; }
-  .status-partial { background: rgba(243, 156, 18, 0.15); color: #f39c12; }
-  .status-missing { background: rgba(231, 76, 60, 0.15); color: #e74c3c; }
-  .status-planned { background: rgba(52, 152, 219, 0.15); color: #3498db; }
-
-  /* Services grid */
-  .services-section {
-    margin-bottom: 20px;
-  }
-  .service-category {
-    margin-bottom: 14px;
-  }
-  .service-category-title {
-    font-size: 10px;
-    font-weight: 600;
-    color: #9a8fb8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    padding: 6px 0;
-    margin-bottom: 6px;
-    border-left: 2px solid #C3A183;
-    padding-left: 8px;
-  }
-  .service-item {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    padding: 5px 0;
-    padding-left: 8px;
-    font-size: 11px;
-    transition: opacity 0.2s ease;
-  }
-  .service-item[data-layer] {
-    position: relative;
-    padding-left: 18px;
-  }
-  .service-item[data-layer]::before {
-    content: '';
-    position: absolute;
-    left: 6px;
-    top: 6px;
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-  }
-  .service-item[data-layer="L1"]::before { background: #C3A183; }
-  .service-item[data-layer="L2"]::before { background: #2dd4bf; }
-  .service-item[data-layer="L3"]::before { background: #7b93db; }
-  .service-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    margin-top: 4px;
-    flex-shrink: 0;
-  }
-  .service-name {
-    color: #d0c8e8;
-  }
-
-  /* External service boxes */
-  .ext-service {
-    background: #1e1833;
-    border: 1px solid #2f2650;
-    border-radius: 6px;
-    padding: 10px 14px;
+    display: flex; flex-wrap: wrap; gap: 28px; align-items: center;
     margin-bottom: 10px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    transition: opacity 0.2s ease;
   }
-  .ext-service[data-layer] {
-    border-left: 3px solid;
+  .legend-row:last-child { margin-bottom: 0; }
+  .legend-label {
+    font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em;
+    color: var(--text-dim); min-width: 110px; font-weight: 600;
   }
-  .ext-service[data-layer="L1"] {
-    border-left-color: #C3A183;
+  .legend-items { display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+  .legend-item {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 12px; color: var(--text-dim);
   }
-  .ext-service[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .ext-service[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .ext-service .svc-icon {
-    width: 28px;
-    height: 28px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 12px;
-    font-weight: 700;
+  .status-dot {
+    display: inline-block; width: 11px; height: 11px; border-radius: 50%;
     flex-shrink: 0;
   }
-  .ext-service .svc-info {
-    flex: 1;
-  }
-  .ext-service .svc-name {
-    font-size: 11px;
-    font-weight: 600;
-    color: #d0c8e8;
-  }
-  .ext-service .svc-role {
-    font-size: 9px;
-    color: #7a6f98;
-  }
+  .status-built   { background: var(--status-built); }
+  .status-partial { background: var(--status-partial); }
+  .status-missing { background: var(--status-missing); }
+  .status-planned { background: var(--status-planned); }
+  .status-seam    { background: transparent; border: 2px dashed var(--gold); width: 9px; height: 9px; }
 
-  /* Architecture pattern box */
-  .arch-box {
-    background: #251e40;
-    border: 1px solid #3a2f5a;
-    border-radius: 8px;
-    padding: 14px;
-    margin-bottom: 14px;
-    transition: opacity 0.2s ease;
+  .layer-buttons { display: flex; flex-wrap: wrap; gap: 8px; }
+  .layer-btn {
+    background: transparent; color: var(--text-dim);
+    border: 1px solid var(--border-2);
+    padding: 6px 14px; font-size: 12px; cursor: pointer;
+    font-family: inherit; border-radius: 2px;
+    transition: all 0.15s;
   }
-  .arch-box[data-layer] {
-    border-left: 3px solid;
-  }
-  .arch-box[data-layer="L1"] {
-    border-left-color: #C3A183;
-  }
-  .arch-box[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .arch-box[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .arch-box .label {
-    font-size: 11px;
-    font-weight: 600;
-    color: #9a8fb8;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 8px;
-    padding-bottom: 6px;
-    border-bottom: 1px solid #2f2650;
-  }
-  .arch-box .value {
-    font-size: 12px;
-    color: #d0c8e8;
-    line-height: 1.6;
-  }
-  .nav-flow {
-    font-size: 11px;
-    color: #b0a8c8;
-    padding: 6px 0;
-    border-bottom: 1px solid #2f2650;
-  }
-  .nav-flow:last-child { border-bottom: none; }
+  .layer-btn:hover { color: var(--text); border-color: var(--gold-dim); }
+  .layer-btn.active.all  { background: var(--gold-dim); color: var(--bg); border-color: var(--gold-dim); }
+  .layer-btn.active.l2   { background: var(--teal); color: var(--bg); border-color: var(--teal); }
+  .layer-btn.active.l3   { background: var(--purple); color: var(--bg); border-color: var(--purple); }
+  .layer-btn.active.seam { background: transparent; color: var(--gold); border: 2px dashed var(--gold); padding: 5px 13px; }
 
-  /* API Models section */
-  .api-models-section {
-    margin-top: 30px;
-    background: #251e40;
-    border: 1px solid #3a2f5a;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: opacity 0.2s ease;
-  }
-  .api-models-section[data-layer] {
-    border-left: 3px solid;
-  }
-  .api-models-section[data-layer="L1"] {
-    border-left-color: #C3A183;
-  }
-  .api-models-section[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .api-models-section[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .api-header {
-    padding: 14px 20px;
-    border-bottom: 1px solid #3a2f5a;
-    font-size: 14px;
-    font-weight: 600;
-    color: #e8e4f0;
-  }
-  .api-body {
-    padding: 16px 20px;
-  }
-  .api-flow {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin-bottom: 12px;
-  }
-  .api-step {
-    background: #1e1833;
-    border: 1px solid #2f2650;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 11px;
-    color: #d0c8e8;
-    text-align: center;
-    min-width: 80px;
-    position: relative;
-    transition: opacity 0.2s ease;
-  }
-  .api-arrow {
-    color: #C3A183;
-    font-size: 14px;
-    padding: 0 8px;
-    flex-shrink: 0;
-  }
-  .api-categories {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-    gap: 8px;
-    margin-top: 12px;
-  }
-  .api-cat {
-    background: #1e1833;
-    border: 1px solid #2f2650;
-    border-radius: 6px;
-    padding: 8px;
-    font-size: 10px;
-    text-align: center;
-    color: #b0a8c8;
-    transition: opacity 0.2s ease;
-  }
+  .container { padding: 32px 56px 80px; max-width: 1800px; margin: 0 auto; }
 
-  /* Data flow section */
-  .flow-section {
-    margin-top: 30px;
-    background: #251e40;
-    border: 1px solid #3a2f5a;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: opacity 0.2s ease;
-  }
-  .flow-section[data-layer] {
-    border-left: 3px solid;
-  }
-  .flow-section[data-layer="L1"] {
-    border-left-color: #C3A183;
-  }
-  .flow-section[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .flow-section[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .flow-header {
-    padding: 14px 20px;
-    border-bottom: 1px solid #3a2f5a;
-    font-size: 14px;
-    font-weight: 600;
-    color: #e8e4f0;
-  }
-  .flow-body {
-    padding: 16px 20px;
-  }
-  .flow-row {
-    display: flex;
-    align-items: center;
-    gap: 0;
-    margin-bottom: 12px;
-  }
-  .flow-step {
-    background: #1e1833;
-    border: 1px solid #2f2650;
-    border-radius: 6px;
-    padding: 10px 14px;
-    font-size: 11px;
-    color: #d0c8e8;
-    text-align: center;
-    min-width: 100px;
-    transition: opacity 0.2s ease;
-  }
-  .flow-step.highlight {
-    border-color: #C3A183;
-    background: #2f2348;
-  }
-  .flow-arrow {
-    color: #C3A183;
-    font-size: 16px;
-    padding: 0 10px;
-    flex-shrink: 0;
-  }
-  .flow-detail {
-    font-size: 10px;
-    color: #9a8fb8;
-    margin-top: 6px;
-    padding: 6px;
-    background: #1e1833;
+  .layer-band {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
     border-radius: 4px;
+    padding: 22px 26px 26px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+  .layer-band.layer-harness { border-left: 4px solid var(--teal); }
+  .layer-band.layer-infra   { border-left: 4px solid var(--purple); }
+  .layer-band.layer-seam {
+    border-left: 4px solid var(--gold);
+    border-style: dashed;
+    border-width: 1px 1px 1px 4px;
+    background: linear-gradient(180deg, rgba(195,161,131,0.06) 0%, var(--bg-card) 100%);
   }
 
-  /* Network layer bar */
-  .network-bar {
-    margin-top: 30px;
-    background: #251e40;
-    border: 1px solid #3a2f5a;
-    border-radius: 8px;
-    overflow: hidden;
-    transition: opacity 0.2s ease;
+  .layer-header {
+    display: flex; align-items: baseline; gap: 16px; flex-wrap: wrap;
+    margin-bottom: 14px; padding-bottom: 12px;
+    border-bottom: 1px solid var(--border);
   }
-  .network-bar[data-layer] {
-    border-left: 3px solid;
+  .layer-header .layer-tag {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.14em;
+    padding: 3px 10px; border-radius: 2px; font-weight: 700;
   }
-  .network-bar[data-layer="L1"] {
-    border-left-color: #C3A183;
-  }
-  .network-bar[data-layer="L2"] {
-    border-left-color: #2dd4bf;
-  }
-  .network-bar[data-layer="L3"] {
-    border-left-color: #7b93db;
-  }
-  .network-header {
-    padding: 14px 20px;
-    border-bottom: 1px solid #3a2f5a;
-    font-size: 14px;
-    font-weight: 600;
-    color: #e8e4f0;
-  }
-  .network-body {
-    padding: 16px 20px;
-  }
-  .network-items {
+  .layer-tag.l2   { background: var(--teal); color: var(--bg); }
+  .layer-tag.l3   { background: var(--purple); color: var(--bg); }
+  .layer-tag.seam { background: transparent; color: var(--gold); border: 1px dashed var(--gold); }
+  .layer-header h2 { font-size: 19px; font-weight: 700; color: var(--text); }
+  .layer-header .layer-sub { font-size: 12px; color: var(--text-faint); flex: 1; text-align: right; }
+
+  .grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    gap: 14px;
   }
-  .net-item {
-    background: #1e1833;
-    border: 1px solid #2f2650;
-    border-radius: 6px;
-    padding: 12px;
-    text-align: center;
-    transition: opacity 0.2s ease;
+  .card {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 14px 16px;
+    position: relative;
   }
-  .net-item[data-layer] {
-    border-left: 3px solid;
+  .card.future { background: transparent; border: 1px dashed var(--gold-dim); }
+  .card-title {
+    font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px;
+    display: flex; justify-content: space-between; align-items: center; gap: 8px;
   }
-  .net-item[data-layer="L1"] {
-    border-left-color: #C3A183;
+  .card-meta { font-size: 11px; color: var(--text-faint); margin-bottom: 8px; }
+  .card-body { font-size: 12.5px; color: var(--text-dim); line-height: 1.5; }
+  .card-body code {
+    font-family: 'SF Mono', Menlo, Consolas, monospace;
+    font-size: 11.5px; color: var(--gold);
+    background: rgba(195,161,131,0.08);
+    padding: 1px 5px; border-radius: 2px;
   }
-  .net-item[data-layer="L2"] {
-    border-left-color: #2dd4bf;
+  .card ul { list-style: none; margin-top: 6px; }
+  .card ul li {
+    font-size: 12px; color: var(--text-dim);
+    padding-left: 14px; position: relative; margin-bottom: 3px;
   }
-  .net-item[data-layer="L3"] {
-    border-left-color: #7b93db;
+  .card ul li::before {
+    content: ""; position: absolute; left: 0; top: 7px;
+    width: 5px; height: 5px; background: var(--gold-dim);
   }
-  .net-icon {
-    font-size: 16px;
-    margin-bottom: 6px;
-  }
-  .net-name {
-    font-size: 11px;
-    font-weight: 600;
-    color: #d0c8e8;
-  }
-  .net-detail {
-    font-size: 9px;
-    color: #7a6f98;
-    margin-top: 4px;
-  }
-
-  /* Toggle arrow */
-  .toggle-arrow {
-    transition: transform 0.2s;
-    color: #7a6f98;
-    font-size: 12px;
-  }
-  .toggle-arrow.open { transform: rotate(180deg); }
-
-  /* Status colors */
-  .status-green { color: #2ecc71; }
-  .status-yellow { color: #f39c12; }
-  .status-red { color: #e74c3c; }
-  .status-blue { color: #3498db; }
-
-  /* Dim effect for layer filtering */
-  [data-layer].dimmed {
-    opacity: 0.15;
-    pointer-events: none;
+  .card-status {
+    display: inline-flex; align-items: center; gap: 6px;
+    font-size: 10.5px; color: var(--text-faint);
+    text-transform: uppercase; letter-spacing: 0.06em;
   }
 
-  /* Responsive */
-  @media (max-width: 1400px) {
-    .main-grid { grid-template-columns: 1fr; }
-    .modules-grid { grid-template-columns: 1fr; }
+  .layer-band.layer-seam .layer-header h2 { color: var(--gold); }
+  .layer-band.layer-seam::after {
+    content: "FUTURE LAYER";
+    position: absolute; top: 14px; right: 22px;
+    font-size: 10px; color: var(--gold);
+    letter-spacing: 0.18em; font-weight: 700;
+  }
+
+  .flow {
+    background: var(--bg-card-2);
+    border: 1px solid var(--border);
+    border-radius: 3px;
+    padding: 18px;
+    margin-bottom: 14px;
+    overflow-x: auto;
+  }
+  .flow-row { display: flex; gap: 8px; align-items: stretch; min-width: max-content; }
+  .flow-step {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    padding: 8px 12px; border-radius: 2px;
+    min-width: 130px; position: relative;
+  }
+  .flow-step.seam { border: 1px dashed var(--gold); background: rgba(195,161,131,0.05); }
+  .flow-step .pn { font-size: 9.5px; color: var(--text-faint); letter-spacing: 0.09em; }
+  .flow-step .nm { font-size: 12px; color: var(--text); font-weight: 600; margin-top: 2px; }
+  .flow-step .sub { font-size: 10.5px; color: var(--text-faint); margin-top: 3px; }
+  .flow-arrow { align-self: center; color: var(--gold-dim); font-size: 16px; padding: 0 1px; }
+
+  .callout {
+    background: rgba(127,182,168,0.07);
+    border-left: 3px solid var(--teal);
+    padding: 10px 14px; margin-top: 10px;
+    font-size: 12.5px; color: var(--text-dim);
+  }
+
+  .subhead {
+    font-size: 13px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--text-dim); margin: 24px 0 12px;
+  }
+
+  .dimmed { opacity: 0.18; }
+
+  footer {
+    border-top: 1px solid var(--border);
+    margin-top: 60px; padding: 18px 56px;
+    text-align: center; font-size: 11.5px; color: var(--text-faint);
+  }
+
+  @media (max-width: 720px) {
+    .legend, header, .container, footer { padding-left: 22px; padding-right: 22px; }
+    .grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-<!-- NAV BAR -->
-<div style="background:#221a3a; border-bottom:1px solid #3a2f5a; padding:8px 40px; display:flex; gap:24px; align-items:center; font-size:13px;">
-  <a href="index.html" style="color:#8a7faa; text-decoration:none; transition:color 0.2s;" onmouseover="this.style.color='#C3A183'" onmouseout="this.style.color='#8a7faa'">&larr; Backend</a>
-  <span style="color:#C3A183; font-weight:600; border-bottom:2px solid #C3A183; padding-bottom:2px;">Frontend</span>
-</div>
-
-<!-- HEADER -->
-<div class="header">
-  <div>
-    <h1>FALCONIUM FRONTEND ARCHITECTURE</h1>
-    <div class="subtitle">Live system map — derived from codebase analysis</div>
+<header>
+  <h1>FALCONIUM FRONTEND ARCHITECTURE — FUTURE STATE</h1>
+  <div class="subtitle">Swift · SwiftUI · MVVM + Coordinator · iPad Pro (M-series) · Trace-ID end-to-end · On-device speech</div>
+  <div class="meta">
+    <span>Updated 24 June 2026 · iPad now points at backend.falconium.ai for ALL surfaces (Singularis cluster removed; 0 'singularis' refs in repo as of the 2026-06-04 main). Chat → FalcoMain pipeline, login, and Outlook email verified working end-to-end 24 June. Base map verified against repo snapshot 2026-05-07-0743 (HEAD 4e8bb5b).</span>
+    <a href="backend-architecture.html" class="nav-link">→ Backend Architecture</a>
   </div>
-  <div class="date">Generated 4 March 2026 &middot; Swift / SwiftUI</div>
-</div>
+</header>
 
-<!-- LEGEND -->
 <div class="legend">
-  <!-- Row 1: Status Legend -->
   <div class="legend-row">
-    <div class="legend-item">
-      <div class="legend-dot" style="background: #2ecc71;"></div>
-      <span>Built & working</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot" style="background: #f39c12;"></div>
-      <span>Partial / needs work</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot" style="background: #e74c3c;"></div>
-      <span>Missing / not implemented</span>
-    </div>
-    <div class="legend-item">
-      <div class="legend-dot" style="background: #3498db;"></div>
-      <span>Planned (future)</span>
+    <span class="legend-label">Status</span>
+    <div class="legend-items">
+      <div class="legend-item"><span class="status-dot status-built"></span><span>Built today</span></div>
+      <div class="legend-item"><span class="status-dot status-partial"></span><span>Partial</span></div>
+      <div class="legend-item"><span class="status-dot status-planned"></span><span>Planned (this build)</span></div>
+      <div class="legend-item"><span class="status-dot status-seam"></span><span>Seam — future layer</span></div>
     </div>
   </div>
-
-  <!-- Row 2: Layer Filters -->
   <div class="legend-row">
-    <div class="layer-filter-label">Layer:</div>
-    <div class="layer-filter">
-      <button class="layer-btn layer-btn-l1 disabled tooltip" data-tooltip="No L1 elements on frontend" onclick="filterByLayer('L1', this)">L1 · Skills (Ilya)</button>
-      <button class="layer-btn layer-btn-l2" onclick="filterByLayer('L2', this)">L2 · Harness (Ilya + Claude)</button>
-      <button class="layer-btn layer-btn-l3" onclick="filterByLayer('L3', this)">L3 · Infrastructure (Developers)</button>
-      <button class="layer-btn all active" onclick="filterByLayer('all', this)">All Layers</button>
+    <span class="legend-label">Layers</span>
+    <div class="layer-buttons">
+      <button class="layer-btn all active" onclick="filterLayer('all')">All</button>
+      <button class="layer-btn l2" onclick="filterLayer('l2')">L2 · Harness boundary</button>
+      <button class="layer-btn l3" onclick="filterLayer('l3')">L3 · Infrastructure</button>
+      <button class="layer-btn seam" onclick="filterLayer('seam')">Seams · Future</button>
     </div>
   </div>
 </div>
 
-<!-- CANVAS -->
-<div class="canvas">
+<div class="container">
 
-  <div class="main-grid">
-
-    <!-- LEFT COLUMN: Architecture Pattern -->
-    <div>
-      <div class="section-title">Architecture Pattern</div>
-
-      <div class="arch-box" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="label">Pattern</div>
-        <div class="value">MVVM + Coordinator</div>
-      </div>
-
-      <div class="app-box" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="app-header">
-          <div class="app-icon" style="background: #2f2348;">⬜</div>
-          <div>
-            <div class="app-name">Navigation Flow</div>
-            <div class="app-desc">Module lifecycle</div>
-          </div>
-        </div>
-        <div class="app-body">
-          <div class="nav-flow">Root</div>
-          <div style="text-align: center; color: #7a6f98; font-size: 11px; padding: 4px 0;">↓</div>
-          <div class="nav-flow">Preloader</div>
-          <div style="text-align: center; color: #7a6f98; font-size: 11px; padding: 4px 0;">↓</div>
-          <div class="nav-flow">LogIn</div>
-          <div style="text-align: center; color: #7a6f98; font-size: 11px; padding: 4px 0;">↓</div>
-          <div class="nav-flow">Home (Main Workspace)</div>
-        </div>
-      </div>
-
-      <div class="arch-box" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="label">Platform</div>
-        <div class="value">iPad Pro (M-series)<br/>100% Swift / SwiftUI</div>
-      </div>
+  <!-- L2 boundary on the iPad -->
+  <div class="layer-band layer-harness" data-layer-band="l2">
+    <div class="layer-header">
+      <span class="layer-tag l2">L2 · Harness boundary</span>
+      <h2>Chat send · Trace-ID propagation · Diagnostic surfaces</h2>
+      <span class="layer-sub">Where the iPad meets the Python harness — the conversation loop</span>
     </div>
 
-    <!-- CENTER COLUMN: Modules, Services, Support -->
-    <div>
-      <div class="section-title">Modules & Features</div>
-
-      <div class="modules-grid">
-        <div class="app-box" data-layer="L3">
-          <div class="layer-badge l3">L3</div>
-          <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
-            <div class="app-icon" style="background: #2f2348;">📱</div>
-            <div>
-              <div class="app-name">LogIn</div>
-              <div class="app-desc">Authentication</div>
-            </div>
-            <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
-          </div>
-          <div class="app-body">
-            <div class="component">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">User authentication</div>
-              <span class="comp-status status-built">Built</span>
-            </div>
-            <div class="component">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Microsoft OAuth</div>
-              <span class="comp-status status-built">Built</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="app-box" data-layer="L3">
-          <div class="layer-badge l3">L3</div>
-          <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
-            <div class="app-icon" style="background: #2f2348;">⏳</div>
-            <div>
-              <div class="app-name">Preloader</div>
-              <div class="app-desc">Splash & init</div>
-            </div>
-            <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
-          </div>
-          <div class="app-body">
-            <div class="component">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">App initialization</div>
-              <span class="comp-status status-built">Built</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="app-box" data-layer="L3">
-          <div class="layer-badge l3">L3</div>
-          <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
-            <div class="app-icon" style="background: #2f2348;">🌳</div>
-            <div>
-              <div class="app-name">Root</div>
-              <div class="app-desc">App root navigation</div>
-            </div>
-            <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
-          </div>
-          <div class="app-body">
-            <div class="component">
-              <div class="comp-dot active"></div>
-              <div class="comp-name">Navigation coordinator</div>
-              <span class="comp-status status-built">Built</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="app-box home-module" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="app-header" style="cursor: pointer;" onclick="toggleBox(this)">
-          <div class="app-icon" style="background: #9b59b6;">🏠</div>
-          <div style="flex: 1;">
-            <div class="app-name">Home Module</div>
-            <div class="app-desc">Main workspace — 17 screens, all core features</div>
-          </div>
-          <span class="toggle-arrow open" style="margin-left: auto;">▼</span>
-        </div>
-        <div class="app-body">
-          <div class="screen-group">
-            <div class="screen-group-title">💬 Conversation</div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">Conversation (chat interface)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">AllConversations (history)</div>
-            </div>
-          </div>
-
-          <div class="screen-group">
-            <div class="screen-group-title">📧 Email</div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">Emails (list)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">EmailDetail (view)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">CreateEmail (compose)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">ReplyEmail (reply)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">ForwardEmail (forward)</div>
-            </div>
-          </div>
-
-          <div class="screen-group">
-            <div class="screen-group-title">📞 Meetings</div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">AllMeetings (list)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">Meeting (detail)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">MeetingDetail (full)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">CreateMeeting (schedule)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">LetsHaveMeetingPopUp (modal)</div>
-            </div>
-          </div>
-
-          <div class="screen-group">
-            <div class="screen-group-title">📊 Projects</div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">AllProjects (list)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">ProjectView (detail)</div>
-            </div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">CreateProject (create)</div>
-            </div>
-          </div>
-
-          <div class="screen-group">
-            <div class="screen-group-title">📄 Documents</div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">Documents (library)</div>
-            </div>
-          </div>
-
-          <div class="screen-group">
-            <div class="screen-group-title">⚙️ System</div>
-            <div class="screen-item">
-              <div class="screen-dot built"></div>
-              <div class="screen-name">LLMLoadProgressView (loading)</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-title" style="margin-top: 24px;">Services Layer</div>
-
-      <div class="services-section">
-        <div class="service-category">
-          <div class="service-category-title">AI & ML</div>
-          <div class="service-item" data-layer="L2">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">AIOrchestrator (routing)</div>
-          </div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #f39c12;"></div>
-            <div class="service-name">SpeechToTextService</div>
-          </div>
-        </div>
-
-        <div class="service-category">
-          <div class="service-category-title">Networking</div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">NetworkService (HTTP)</div>
-          </div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">FileDownloader</div>
-          </div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">FileStorage (local)</div>
-          </div>
-        </div>
-
-        <div class="service-category">
-          <div class="service-category-title">Authentication</div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">TokenService (JWT)</div>
-          </div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">MicrosoftAuthManager</div>
-          </div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">KeychainService</div>
-          </div>
-        </div>
-
-        <div class="service-category">
-          <div class="service-category-title">Audio & Recording</div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">AudioRecordingService</div>
-          </div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">RecordingService</div>
-          </div>
-        </div>
-
-        <div class="service-category">
-          <div class="service-category-title">UI Support</div>
-          <div class="service-item" data-layer="L2">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">LiveMessageWriter</div>
-          </div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">KeyboardObserver</div>
-          </div>
-          <div class="service-item" data-layer="L3">
-            <div class="service-dot" style="background: #2ecc71;"></div>
-            <div class="service-name">PermissionService</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-title">Application Support</div>
-
-      <div class="app-box" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="app-body" style="padding: 12px;">
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">AppManager</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">AppError</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Constants</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Coordinator</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Formatters</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Global</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Helpers</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Mock</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Protocols</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Resources</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Support</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Validator</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">ViewComponents</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">LLM (libraries)</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT COLUMN: Backend & Cloud Services -->
-    <div>
-      <div class="section-title">Backend & Cloud</div>
-
-      <div class="app-box" data-layer="L3">
-        <div class="layer-badge l3">L3</div>
-        <div class="app-header">
-          <div class="app-icon" style="background: #2f2348;">⚙️</div>
-          <div>
-            <div class="app-name">Django Backend</div>
-            <div class="app-desc">REST API + WebSocket</div>
-          </div>
-        </div>
-        <div class="app-body">
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Chats (conversations)</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Email integration</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Meetings (transcripts)</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Projects & tasks</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">Documents (RAG)</div>
-          </div>
-          <div class="component">
-            <div class="comp-dot active"></div>
-            <div class="comp-name">MCP tools</div>
-          </div>
-        </div>
-      </div>
-
-      <div class="section-title">LLM Providers</div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #2f2348;">🧠</div>
-        <div class="svc-info">
-          <div class="svc-name">Anthropic Claude</div>
-          <div class="svc-role">Primary reasoning</div>
-        </div>
-      </div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #2f2348;">🤖</div>
-        <div class="svc-info">
-          <div class="svc-name">OpenAI GPT-4o</div>
-          <div class="svc-role">Embeddings + fallback</div>
-        </div>
-      </div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #2f2348;">🔍</div>
-        <div class="svc-info">
-          <div class="svc-name">Perplexity</div>
-          <div class="svc-role">Web search</div>
-        </div>
-      </div>
-
-      <div class="section-title">On-Device Speech</div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #3498db;">🎤</div>
-        <div class="svc-info">
-          <div class="svc-name">WhisperKit</div>
-          <div class="svc-role">STT (planned)</div>
-        </div>
-      </div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #3498db;">🔊</div>
-        <div class="svc-info">
-          <div class="svc-name">FluidAudio</div>
-          <div class="svc-role">Diarization + TTS (planned)</div>
-        </div>
-      </div>
-
-      <div class="section-title">Cloud Speech (Deprecated)</div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #e74c3c;">🌐</div>
-        <div class="svc-info">
-          <div class="svc-name">Replicate</div>
-          <div class="svc-role">STT fallback (being phased)</div>
-        </div>
-      </div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #e74c3c;">🎙️</div>
-        <div class="svc-info">
-          <div class="svc-name">ElevenLabs</div>
-          <div class="svc-role">TTS (being phased)</div>
-        </div>
-      </div>
-
-      <div class="section-title">Integration</div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #2f2348;">📤</div>
-        <div class="svc-info">
-          <div class="svc-name">Microsoft Graph</div>
-          <div class="svc-role">Outlook OAuth</div>
-        </div>
-      </div>
-
-      <div class="ext-service" data-layer="L3">
-        <div class="svc-icon" style="background: #2f2348;">🗂️</div>
-        <div class="svc-info">
-          <div class="svc-name">AWS S3</div>
-          <div class="svc-role">File storage</div>
-        </div>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- API MODELS SECTION -->
-  <div class="api-models-section" data-layer="L3">
-    <div class="api-header">API Models Flow</div>
-    <div class="api-body">
-      <div class="api-flow">
-        <div class="api-step">25+ Request Models (Body/)</div>
-        <div class="api-arrow">→</div>
-        <div class="api-step">NetworkService</div>
-        <div class="api-arrow">→</div>
-        <div class="api-step">Backend API</div>
-        <div class="api-arrow">→</div>
-        <div class="api-step">Response Models</div>
-      </div>
-      <div class="api-categories">
-        <div class="api-cat">AI (Claude, GPT, Perplexity)</div>
-        <div class="api-cat">Email (CRUD, OAuth)</div>
-        <div class="api-cat">Meetings (transcripts, tasks)</div>
-        <div class="api-cat">Projects (create, manage)</div>
-        <div class="api-cat">Documents (RAG, upload)</div>
-        <div class="api-cat">Messaging (send, stream)</div>
-        <div class="api-cat">MCP Tools (invoke)</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- DATA FLOW SECTION -->
-  <div class="flow-section" data-layer="L2">
-    <div class="flow-header">User Query Data Flow</div>
-    <div class="flow-body">
+    <div class="flow" data-layer="l2">
       <div class="flow-row">
-        <div class="flow-step">User Input</div>
+        <div class="flow-step"><div class="pn">USER</div><div class="nm">Send</div><div class="sub">tap or voice end</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step">AIOrchestrator</div>
+        <div class="flow-step"><div class="pn">VIEWMODEL</div><div class="nm">ConversationVM</div><div class="sub">composes payload</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step highlight">Route Decision</div>
-      </div>
-      <div class="flow-detail">
-        Routes to: Claude (general Q&A) | GPT-4o (embeddings) | Perplexity (web search)
-      </div>
-      <div class="flow-row" style="margin-top: 12px;">
-        <div class="flow-step">LLM Response</div>
+        <div class="flow-step"><div class="pn">SERVICE</div><div class="nm">AIOrchestrator</div><div class="sub">routes the call</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step">LiveMessageWriter</div>
+        <div class="flow-step"><div class="pn">NETWORK</div><div class="nm">NetworkService</div><div class="sub">+ X-Falconium-Trace-Id</div></div>
         <div class="flow-arrow">→</div>
-        <div class="flow-step highlight">Display</div>
+        <div class="flow-step"><div class="pn">EDGE</div><div class="nm">backend.falconium.ai/n8n</div><div class="sub">2-node forwarder</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="pn">PIPELINE</div><div class="nm">FalcoMain endpoint</div><div class="sub">14 named steps</div></div>
+        <div class="flow-arrow">→</div>
+        <div class="flow-step"><div class="pn">RESPONSE</div><div class="nm">LiveMessageWriter</div><div class="sub">renders + persists</div></div>
       </div>
-      <div class="flow-detail">
-        Streaming text + real-time UI updates + voice synthesis
+    </div>
+
+    <div class="grid">
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">AIOrchestrator <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/AIOrchestrator/</div>
+        <div class="card-body">
+          Decides which path a chat takes — the iPad's only routing surface. After cutover the only live route is "to the FalcoMain pipeline via the n8n forwarder". Direct cloud-LLM paths (the legacy <code>openAI</code> / <code>anthropicAI</code> / <code>perplexity</code> cases) are removed in Phase 4.
+        </div>
       </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">NetworkService — Trace-ID injection <span class="card-status"><span class="status-dot status-planned"></span>Planned</span></div>
+        <div class="card-meta">Network/TraceId.swift (new) + existing API.swift</div>
+        <div class="card-body">
+          Generates a UUIDv7 at the moment the user taps send. Attaches it as <code>X-Falconium-Trace-Id</code> on every outgoing chat request. The trace ID flows iPad → forwarder → Django → all logs → Sentry → response body.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">LiveMessageWriter <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/LiveMessageWriter.swift</div>
+        <div class="card-body">
+          Streams response chunks into the chat view, persists to local store. Trace ID and run ID echoed back from the response are attached to the message record.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Diagnostic affordances <span class="card-status"><span class="status-dot status-planned"></span>Planned</span></div>
+        <div class="card-meta">ConversationView · Settings</div>
+        <div class="card-body">
+          <ul>
+            <li>Long-press any chat bubble → <em>Copy diagnostic</em> places trace ID on clipboard</li>
+            <li>Settings → <em>Send debug bundle</em> emails the rolling log + last 24h Sentry breadcrumbs to Ilya</li>
+            <li>Pasting a trace ID into <code>backend.falconium.ai/admin/run/&lt;id&gt;</code> shows the full pipeline run</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Logger service <span class="card-status"><span class="status-dot status-partial"></span>Partial — verbose mode pending</span></div>
+        <div class="card-meta">Application/Services/Logger/</div>
+        <div class="card-body">
+          Existing logger raised to verbose for the single-user phase. Writes to:
+          <ul>
+            <li>Sentry breadcrumbs — every state change, every network call</li>
+            <li>Rolling local file in app Documents — 7-day window, 100&nbsp;MB cap</li>
+            <li>NSLog / OSLog for Xcode console</li>
+          </ul>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="callout">
+      <strong>Wire contract preserved:</strong> the iPad continues to call <code>https://backend.falconium.ai/n8n/webhook/df5cb261-…</code>. No app version bump, no TestFlight push required for cutover. The change happens behind that URL, not in front of it.
     </div>
   </div>
 
-  <!-- NETWORK LAYER SECTION -->
-  <div class="network-bar" data-layer="L3">
-    <div class="network-header">Custom Network Layer</div>
-    <div class="network-body">
-      <div class="network-items">
-        <div class="net-item" data-layer="L3">
-          <div class="net-icon">⚡</div>
-          <div class="net-name">HTTP Stack</div>
-          <div class="net-detail">No Alamofire — full control</div>
-        </div>
-        <div class="net-item" data-layer="L3">
-          <div class="net-icon">📦</div>
-          <div class="net-name">Request Encoding</div>
-          <div class="net-detail">JSON + multipart support</div>
-        </div>
-        <div class="net-item" data-layer="L3">
-          <div class="net-icon">🔄</div>
-          <div class="net-name">Retry Logic</div>
-          <div class="net-detail">Exponential backoff</div>
-        </div>
-        <div class="net-item" data-layer="L3">
-          <div class="net-icon">🔗</div>
-          <div class="net-name">WebSocket Streaming</div>
-          <div class="net-detail">Real-time messages</div>
-        </div>
-        <div class="net-item" data-layer="L3">
-          <div class="net-icon">🔐</div>
-          <div class="net-name">Header Management</div>
-          <div class="net-detail">JWT + OAuth tokens</div>
+  <!-- SEAM LAYER -->
+  <div class="layer-band layer-seam" data-layer-band="seam">
+    <div class="layer-header">
+      <span class="layer-tag seam">Seams</span>
+      <h2>Future Layers — designed-in surfaces ready to activate</h2>
+      <span class="layer-sub">UI seams that the iPad reserves space for, paired with backend seams</span>
+    </div>
+    <div class="grid">
+
+      <div class="card future" data-layer="seam">
+        <div class="card-title">FalcoJudge response surface</div>
+        <div class="card-meta">ConversationView — paired with backend §6</div>
+        <div class="card-body">
+          When FalcoJudge activates and produces a counter-argument, verification note, or confidence score, the iPad needs a place to render it inline. Day one: response is presented as-is. Future: small badge under the response with "view verification" affordance.
         </div>
       </div>
+
+      <div class="card future" data-layer="seam">
+        <div class="card-title">On-device speech pipeline (full)</div>
+        <div class="card-meta">WhisperKitService + FluidAudio + PocketTTS</div>
+        <div class="card-body">
+          STT and TTS already on-device. Speaker diarisation via FluidAudio is partly wired. The seam is the last mile: ElevenLabs cloud TTS removed entirely from the critical path (cleanup brief), Replicate kept as STT fallback for two releases, then removed.
+        </div>
+      </div>
+
+      <div class="card future" data-layer="seam">
+        <div class="card-title">Edge orchestrator — Llama 3.5</div>
+        <div class="card-meta">LLM/ — apps/llm runtime · planned</div>
+        <div class="card-body">
+          Long-term: an on-device classifier and lightweight orchestrator that runs before any cloud call leaves the iPad. The current architecture has the n8n forwarder doing this; the edge orchestrator absorbs that role over time, keeping the conversation loop entirely on-device for low-stakes turns.
+        </div>
+      </div>
+
+      <div class="card future" data-layer="seam">
+        <div class="card-title">Anonymisation preview</div>
+        <div class="card-meta">ConversationView — paired with backend §9</div>
+        <div class="card-body">
+          When the anonymisation chokepoint activates, the iPad shows an unobtrusive indicator that the message was anonymised before leaving the device, and lets the user inspect the redactions. Day one: pass-through, no UI surface.
+        </div>
+      </div>
+
+      <div class="card future" data-layer="seam">
+        <div class="card-title">Financial Observatory morning surface</div>
+        <div class="card-meta">Modules/Home/Contents/MorningObservations — planned · §15</div>
+        <div class="card-body">
+          The user-facing side of nightly contemplation: a morning observation list with full provenance and accept/dismiss/annotate controls. Specified in v1.1 of the architecture document; promotion to MVP scope is a discrete decision.
+        </div>
+      </div>
+
+      <div class="card future" data-layer="seam">
+        <div class="card-title">Settings → Secrets entry</div>
+        <div class="card-meta">Modules/Settings — webview onto backend admin</div>
+        <div class="card-body">
+          A simple in-app entry point to <code>backend.falconium.ai/admin/secrets/</code> for key rotation. Optional — Ilya can always reach the same form from a browser. Provides a single place to manage every credential without touching code.
+        </div>
+      </div>
+
     </div>
+  </div>
+
+  <!-- L3 INFRASTRUCTURE -->
+  <div class="layer-band layer-infra" data-layer-band="l3">
+    <div class="layer-header">
+      <span class="layer-tag l3">L3 · Infrastructure</span>
+      <h2>iPad app — Modules · Services · Network · LLM · Build</h2>
+      <span class="layer-sub">Developer-owned · Singularis (Evgeny Popov) · Swift / SwiftUI / MVVM + Coordinator</span>
+    </div>
+
+    <h3 class="subhead">App entry &amp; navigation</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">lockkkkApp · RootView <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Modules/Root</div>
+        <div class="card-body">
+          App entry point. Boots <code>AppManager</code>, hands off to the <code>AppCoordinator</code> for routing. Single source of truth for navigation state.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">AppCoordinator · Coordinator protocol <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Coordinator</div>
+        <div class="card-body">
+          Manages <code>navigationPath</code>, sheets, full-screen covers. Generic Coordinator interface for sub-coordinators per module.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Screen enum <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Coordinator/Screen.swift</div>
+        <div class="card-body">
+          Central routing definition: <code>preloader</code>, <code>login</code>, <code>home</code>, <code>modelSelection</code>.
+        </div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">Modules</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Home <span class="card-status"><span class="status-dot status-built"></span>Built · 17 screens</span></div>
+        <div class="card-meta">Modules/Home/Contents/</div>
+        <div class="card-body">
+          The main workspace. Contains:
+          <ul>
+            <li>Conversation · AllConversations</li>
+            <li>Documents</li>
+            <li>Emails · EmailDetail · CreateEmail · ReplyEmail · ForwardEmail</li>
+            <li>Meeting · MeetingDetail · AllMeetings · CreateMeeting · LetsHaveMeetingPopUp</li>
+            <li>ProjectView · Allprojects · CreateProject</li>
+            <li>LLMLoadProgressView</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">LogIn <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Modules/LogIn/</div>
+        <div class="card-body">
+          Email/password and Microsoft OAuth flows. Tokens stored via <code>KeychainService</code>.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Settings <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Modules/Settings/</div>
+        <div class="card-body">
+          User profile, model preferences, debug bundle export, log verbosity controls.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">ModelSelection <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Modules/ModelSelection/</div>
+        <div class="card-body">
+          On-device LLM model picker for any local inference paths. Tied to <code>LLM/</code> support code.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Preloader <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Modules/Preloader/</div>
+        <div class="card-body">
+          Splash and bootstrap. Authenticates, loads user profile, primes services.
+        </div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">Services</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">NetworkService <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/NetworkService/ + Network/ at root</div>
+        <div class="card-body">
+          Custom networking stack (not Alamofire). Request encoding, retry, multipart upload, HTTP header management. Phase 0 adds trace-ID injection.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">AudioRecordingService <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/AudioRecordingService/</div>
+        <div class="card-body">
+          Captures meeting audio for transcription. Routes to either WhisperKit (on-device) or the backend WebSocket for streaming.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">SpeechToTextService <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/SpeechToTextService/</div>
+        <div class="card-body">
+          STT facade. Switches between WhisperKit (on-device) and backend WhisperX as fallback. Replicate path retired in two releases.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">WhisperKitService <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/WhisperKitService/</div>
+        <div class="card-body">
+          Argmax WhisperKit on-device transcription. iOS-native. Model loaded once, kept in memory. Default STT path post-MVP.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">TTSService <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/TTSService.swift</div>
+        <div class="card-body">
+          Text-to-speech facade. FluidAudio PocketTTS on-device. ElevenLabs cloud path being deprecated (cleanup brief).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">MicrosoftAuthManager · TokenService <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/MicrosoftAuthManager/ + TokenService/</div>
+        <div class="card-body">
+          OAuth flow for Outlook integration. JWT lifecycle for backend auth. Tokens via Keychain.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">KeychainService · KeyboardObserver · PermissionService <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/</div>
+        <div class="card-body">
+          Secure local storage, keyboard tracking for chat composer, system permissions (mic, notifications).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">FileDownloader · FileStorage <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/</div>
+        <div class="card-body">
+          Document and attachment download/storage. Backed by S3 on the backend.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">RecordingService <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Services/RecordingService.swift</div>
+        <div class="card-body">
+          Higher-level meeting recording orchestration. Wraps audio capture, chunking, upload.
+        </div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">LLM &amp; on-device inference</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">LLM module <span class="card-status"><span class="status-dot status-partial"></span>Partial</span></div>
+        <div class="card-meta">LLM/ at repo root</div>
+        <div class="card-body">
+          Direct LLM interaction code. Includes ViewModels for streaming responses. After cutover, the only LLM path used is via the FalcoMain endpoint — direct provider calls (<code>openAI</code>, <code>anthropicAI</code>, <code>perplexity</code> in <code>API.swift</code>) are removed in Phase 4.
+        </div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">Network &amp; data models</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">API.swift <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Network/API/API.swift</div>
+        <div class="card-body">
+          Single endpoint enum. Every request type is a case here. Cases used by the new flow: <code>sendUserMessage</code> (chat), <code>conversations</code>, <code>messages</code>, <code>transcribeAudio</code>, <code>uploadFile</code>, <code>documents</code>, etc. Cases removed in Phase 4: <code>llmAnswer</code> and the direct provider cases.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">URLs.swift · AppKeys.swift <span class="card-status"><span class="status-dot status-partial"></span>Partial — keys removed Phase 0</span></div>
+        <div class="card-meta">lockkkk/Application/Constants/</div>
+        <div class="card-body">
+          URL constants and (currently) hardcoded API keys. After Phase 0:
+          <ul>
+            <li>Keys come from xcconfig at build time, sourced from SSM via Fastlane</li>
+            <li>Singularis URL fallbacks replaced with <code>backend.falconium.ai</code> (cleanup brief item 1)</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">API Models <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Application/Models/APIModels/</div>
+        <div class="card-body">
+          Codable request and response models for every backend endpoint. Including <code>SendUserMessageHttpBody</code>, <code>SendUserMessageResponse</code>, plus models for AI responses (<code>AnthropicResponse</code>, <code>OpenAIResponse</code>, <code>PerplexityResponse</code>, <code>LLMAnswer</code>) — the latter set is retired with the direct-provider paths.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">CoreDataManager <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">Utils/Managers/CoreDataManager.swift</div>
+        <div class="card-body">
+          Local persistence for conversations, messages, drafts, offline queue.
+        </div>
+      </div>
+
+    </div>
+
+    <h3 class="subhead">Build &amp; deployment</h3>
+    <div class="grid">
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Fastlane lanes <span class="card-status"><span class="status-dot status-partial"></span>Partial — SSM lookup added Phase 0</span></div>
+        <div class="card-meta">fastlane/</div>
+        <div class="card-body">
+          TestFlight automated pipeline. Phase 0 adds an SSM-lookup step that pulls API keys at build time and injects them into <code>xcconfig</code>. Match for code-signing.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Sentry SDK <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">SPM dependency · DSN from SSM</div>
+        <div class="card-body">
+          Error capture, breadcrumbs, traces. Trace ID set on every event for cross-system correlation.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">CI/CD <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-meta">.github/ workflows</div>
+        <div class="card-body">
+          GitHub Actions: lint, test, Fastlane match, TestFlight upload on tag.
+        </div>
+      </div>
+
+    </div>
+
   </div>
 
 </div>
+
+<footer>
+  <p>Falconium Frontend Architecture · Future-state map · 7 May 2026</p>
+  <p style="margin-top: 6px; font-size: 10.5px;">L2 Harness boundary (where the iPad meets the Python harness) · L3 Infrastructure (Singularis-owned) · Seams = future layers, designed in today</p>
+</footer>
 
 <script>
-function toggleBox(header) {
-  const body = header.nextElementSibling;
-  if (body && body.classList.contains('app-body')) {
-    body.classList.toggle('collapsed');
-    const arrow = header.querySelector('.toggle-arrow');
-    if (arrow) {
-      arrow.classList.toggle('open');
-    }
-  }
-}
+  function filterLayer(layer) {
+    document.querySelectorAll('.layer-btn').forEach(btn => btn.classList.remove('active'));
+    const map = { all: '.layer-btn.all', l2: '.layer-btn.l2', l3: '.layer-btn.l3', seam: '.layer-btn.seam' };
+    document.querySelector(map[layer]).classList.add('active');
 
-function filterByLayer(layer, buttonEl) {
-  const buttons = document.querySelectorAll('.layer-btn');
-  const allLayerElements = document.querySelectorAll('[data-layer]');
-
-  // Update button states
-  buttons.forEach(btn => {
-    btn.classList.remove('active');
-  });
-  buttonEl.classList.add('active');
-
-  if (layer === 'all') {
-    // Show all elements
-    allLayerElements.forEach(el => {
-      el.classList.remove('dimmed');
+    document.querySelectorAll('.layer-band').forEach(band => {
+      const dim = layer !== 'all' && band.getAttribute('data-layer-band') !== layer;
+      band.classList.toggle('dimmed', dim);
     });
-  } else {
-    // Dim all elements except the selected layer
-    allLayerElements.forEach(el => {
-      if (el.getAttribute('data-layer') === layer) {
-        el.classList.remove('dimmed');
-      } else {
-        el.classList.add('dimmed');
-      }
+    document.querySelectorAll('[data-layer]').forEach(el => {
+      if (el.classList.contains('layer-btn')) return;
+      const dim = layer !== 'all' && el.getAttribute('data-layer') !== layer;
+      el.classList.toggle('dimmed', dim);
     });
   }
-}
 </script>
 
 </body>
