@@ -234,9 +234,9 @@
 
 <header>
   <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
-  <div class="subtitle">Django 5.0 · DRF · PostgreSQL · Custom step-graph runner · Runtime Wiki · SSM-backed secrets · Structured logging</div>
+  <div class="subtitle">Django 5.0 · DRF · PostgreSQL · Custom step-graph runner · Runtime Wiki · SSM-backed secrets · Structured logging · Admin/User dashboards</div>
   <div class="meta">
-    <span>2 June 2026 · Current state · FalcoMain cutover live since 11 May · Runtime Wiki deployed 22 May · Verified against work log and wiki</span>
+    <span>24 June 2026 · Current state · FalcoMain cutover live · Runtime Wiki deployed · NEW: Admin + User dashboards live in production · detailed API payload logging to CloudWatch · Verified against work log</span>
     <a href="frontend-architecture.html" class="nav-link">→ Frontend Architecture</a>
   </div>
 </header>
@@ -394,6 +394,37 @@
         <div class="card-meta">POST /api/v1/agents/falco/main/</div>
         <div class="card-body">
           The user-facing chat endpoint. Accepts the n8n-shaped request, returns the n8n-shaped response. Receives traffic via the n8n forwarder at <code>backend.falconium.ai/n8n/webhook/df5cb261-…</code>. iPad wire contract unchanged.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Admin + User Dashboards <span class="card-status"><span class="status-dot status-built"></span>Built · live</span></div>
+        <div class="card-meta">apps/dashboard/</div>
+        <div class="card-body">
+          Server-rendered Admin dashboard (superuser-only) and per-User dashboard, replacing the retired n8n/RAPTOR-era Django admin. Markdown-first config under a git-backed content/ root, routed through three thin stores so infrastructure can be repointed later.
+          <ul>
+            <li>ContentStore (filesystem+git, commit-on-save), RecordStore (Postgres), SecretStore (wraps secrets_admin/SSM)</li>
+            <li>Config resolver: system default → product pack → user override</li>
+            <li>Admin sections: system overview/health, users + audit-logged Open-as-user, models, agents, skills library, system style, databases, MCP toggles</li>
+            <li>Dark shared web house style (also applied to secrets_admin + observability); admin/user view switcher</li>
+            <li>Mounted at /dashboard/admin/ and /dashboard/ — live at backend.falconium.ai</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">API Payload Logging <span class="card-status"><span class="status-dot status-built"></span>Built · live</span></div>
+        <div class="card-meta">apps/dashboard/request_logging.py</div>
+        <div class="card-body">
+          Middleware logging one structured JSON line per /api/* and /dashboard/* request — method, path, status, duration, user, IP, full request+response bodies. Sensitive fields (password, token, secret, authorization, cookie) redacted to ***; bodies size-capped 50KB; ships to CloudWatch /falconium/backend via the existing Vector pipeline. Controlled by API_LOG_* env vars.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Secrets Admin <span class="card-status"><span class="status-dot status-built"></span>Built · live</span></div>
+        <div class="card-meta">apps/secrets_admin/</div>
+        <div class="card-body">
+          Superuser-only CRUD over /falconium/* SSM Parameter Store params; masked list, audited reveal/edit. Mounted at /admin/secrets/. Wrapped (not reimplemented) by the dashboard's SecretStore.
         </div>
       </div>
 
@@ -634,10 +665,10 @@
       </div>
 
       <div class="card" data-layer="l3">
-        <div class="card-title">CloudWatch Logs <span class="card-status"><span class="status-dot status-planned"></span>Planned</span></div>
+        <div class="card-title">CloudWatch Logs <span class="card-status"><span class="status-dot status-built"></span>Built · live</span></div>
         <div class="card-meta">Centralised structured log destination</div>
         <div class="card-body">
-          Filebeat ships JSON-formatted Django stdout to CloudWatch. Searchable from AWS console; queryable by <code>trace_id</code> for end-to-end debugging.
+          Structured JSON logs from gunicorn/daphne/celery ship to CloudWatch log group <code>/falconium/backend</code> (eu-west-2, 30-day retention) via a Vector agent on the EC2 host. Includes detailed API request/response payload logging (redacted). Searchable in Logs Insights by <code>trace_id</code>.
         </div>
       </div>
 
@@ -719,6 +750,14 @@
         <div class="card-meta">Non-chat endpoints</div>
         <div class="card-body">
           Chat path now goes through <code>backend.falconium.ai</code> (Django). All other REST and the audio WebSocket still hit the Singularis Kubernetes cluster (<code>falconium.k8s.singularis-lab.com</code>). Wiki enrichment fields (<code>wiki_slug</code>, <code>wiki_summary</code>) will not reach the iPad until the non-chat REST endpoints are repointed — the key outstanding unlock.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l3">
+        <div class="card-title">Observability · Live Logs <span class="card-status"><span class="status-dot status-built"></span>Built · live</span></div>
+        <div class="card-meta">apps/observability/ + CloudWatch</div>
+        <div class="card-body">
+          Live systemd-journal log tail (SSE) at /admin/logs/, superuser-only. Structured JSON logs from gunicorn/daphne/celery ship to CloudWatch log group /falconium/backend (eu-west-2, 30-day retention) via a Vector agent on EC2, correlated by trace_id. Deploy: AWS CodePipeline 'london-falconium-cicd-pipeline' watches main → CodeDeploy → EC2.
         </div>
       </div>
 
