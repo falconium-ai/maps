@@ -234,9 +234,9 @@
 
 <header>
   <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
-  <div class="subtitle">Django 5.0 · DRF · PostgreSQL · Custom step-graph runner · Runtime Wiki · SSM-backed secrets · Structured logging · Admin/User dashboards</div>
+  <div class="subtitle">Django 5.0 · DRF · PostgreSQL · Custom step-graph runner · Runtime Wiki · SSM-backed secrets · Structured logging · Admin/User dashboards · Banker Brain (Hermes upgrade, flag-gated)</div>
   <div class="meta">
-    <span>24 June 2026 · Current state · FalcoMain cutover live · Runtime Wiki deployed · NEW: Admin + User dashboards live in production · detailed API payload logging to CloudWatch · Verified against work log</span>
+    <span>25 June 2026 · Current state · FalcoMain cutover live · Runtime Wiki deployed · Admin + User dashboards live in production · detailed API payload logging to CloudWatch · Verified against work log · NEW: Banker Brain (Hermes upgrade) Phases 1–6 deployed to production — additive, behind feature flags (default off); live chat path unchanged.</span>
     <a href="frontend-architecture.html" class="nav-link">→ Frontend Architecture</a>
   </div>
 </header>
@@ -342,7 +342,63 @@
         <div class="card-title">Drafter LLM Abstraction <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
         <div class="card-meta">apps/agents/llm/drafter.py</div>
         <div class="card-body">
-          Vendor-neutral interface. Live implementation calls Groq <code>qwen/qwen3-32b</code>. Same call signature for Anthropic and OpenAI when activated. Per §10, today's Groq-only behaviour is a configuration choice, not a code dependency.
+          Vendor-neutral interface. Default path is a single Groq <code>qwen/qwen3-32b</code> call. When <code>AGENTS_MODEL_RESOLUTION_ENABLED</code> is on, the drafter resolves provider/model via the model registry with ordered fallback across Groq, Anthropic and OpenAI. Per §10, today's Groq-only behaviour is a configuration choice, not a code dependency.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Model Resolution + Fallback <span class="card-status"><span class="status-dot status-built"></span>Built · flag-gated</span></div>
+        <div class="card-meta">apps/agents/llm/resolution.py</div>
+        <div class="card-body">
+          Multi-model provider resolution with ordered fallback over the existing model registry, behind <code>AGENTS_MODEL_RESOLUTION_ENABLED</code> · flag-gated (default off).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">LLM Hook Seam <span class="card-status"><span class="status-dot status-built"></span>Built · flag-gated</span></div>
+        <div class="card-meta">apps/agents/llm/hooks.py</div>
+        <div class="card-body">
+          Plugin hook seam exposing pre/post/session hooks around every LLM call, behind <code>AGENTS_LLM_HOOKS_ENABLED</code> · flag-gated (default off).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Context Compression + Lineage <span class="card-status"><span class="status-dot status-built"></span>Built · flag-gated</span></div>
+        <div class="card-meta">apps/agents/llm/compression.py</div>
+        <div class="card-body">
+          Context compression with full <code>ContextLineage</code> and prompt-cache-stable prompts, behind <code>AGENTS_CONTEXT_COMPRESSION_ENABLED</code> · flag-gated (default off).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Learning Engine + Approval Queue <span class="card-status"><span class="status-dot status-built"></span>Built · flag-gated</span></div>
+        <div class="card-meta">apps/learning/</div>
+        <div class="card-body">
+          Observation / ReflexionNote / CandidateLearning foundation with a human approval queue, behind <code>LEARNING_ENABLED</code> · flag-gated (default off).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Skill Loop (write_approval) <span class="card-status"><span class="status-dot status-built"></span>Built · flag-gated</span></div>
+        <div class="card-meta">apps/learning/skills.py</div>
+        <div class="card-body">
+          Self-improving SKILL.md propose/approve loop guarded by a <code>write_approval</code> gate, behind <code>LEARNING_SKILL_LOOP_ENABLED</code> · flag-gated (default off).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">ExpeL House-Rules + Voyager <span class="card-status"><span class="status-dot status-built"></span>Built · flag-gated</span></div>
+        <div class="card-meta">apps/learning/expel.py · voyager.py</div>
+        <div class="card-body">
+          ExpeL self-pruning house-rules (<code>HouseRule</code> model) and Voyager-style skill growth, behind <code>LEARNING_EXPEL_ENABLED</code> · flag-gated (default off).
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Multi-Agent Delegation <span class="card-status"><span class="status-dot status-built"></span>Built · flag-gated</span></div>
+        <div class="card-meta">apps/agents/orchestration/delegate.py</div>
+        <div class="card-body">
+          <code>delegate_task</code> with multi-model routing (<code>DelegatedTask</code> model); the deterministic step-graph is retained as the analysis specialist, behind <code>AGENTS_DELEGATION_ENABLED</code> · flag-gated (default off).
         </div>
       </div>
 
@@ -377,7 +433,7 @@
         <div class="card-title">Memory module — read+write <span class="card-status"><span class="status-dot status-partial"></span>Partial · hydrate + write live</span></div>
         <div class="card-meta">apps/memory/</div>
         <div class="card-body">
-          Step 02 hydrates context from <code>memory_user_profile</code> and <code>memory_daily_log</code> at session start. Step 14 dispatches async Celery write. Three memory types per Memory Architecture v1 — <em>semantic</em>, <em>episodic</em>, <em>procedural</em> — specified but Phase 1 full deployment pending. The Supabase / MongoDB pattern from the n8n era is dropped.
+          Step 02 hydrates context from <code>memory_user_profile</code> and <code>memory_daily_log</code> at session start. Step 14 dispatches async Celery write. Three memory types per Memory Architecture v1 — <em>semantic</em>, <em>episodic</em>, <em>procedural</em> — specified but Phase 1 full deployment pending. The Supabase / MongoDB pattern from the n8n era is dropped. A curated always-on brain tier + distillation (<code>BrainTier</code>/<code>BrainClaim</code>, <code>apps/memory/brain.py</code>) and a three-layer People model (Facts/Relationship/Synthesis, <code>apps/memory/people.py</code>) now exist, flag-gated (<code>MEMORY_BRAIN_TIER_ENABLED</code> / <code>MEMORY_PEOPLE_LAYERS_ENABLED</code>).
         </div>
       </div>
 
@@ -401,7 +457,7 @@
         <div class="card-title">Admin + User Dashboards <span class="card-status"><span class="status-dot status-built"></span>Built · live</span></div>
         <div class="card-meta">apps/dashboard/</div>
         <div class="card-body">
-          Server-rendered Admin dashboard (superuser-only) and per-User dashboard, replacing the retired n8n/RAPTOR-era Django admin. Markdown-first config under a git-backed content/ root, routed through three thin stores so infrastructure can be repointed later.
+          Server-rendered Admin dashboard (superuser-only) and per-User dashboard, replacing the retired n8n/RAPTOR-era Django admin. Markdown-first config under a git-backed content/ root, routed through three thin stores so infrastructure can be repointed later. Now also hosts 7 Banker Brain control sections: Learning queue, Skill loop, Memory browser, House rules, Run monitor, Context &amp; lineage, and Hooks &amp; flags.
           <ul>
             <li>ContentStore (filesystem+git, commit-on-save), RecordStore (Postgres), SecretStore (wraps secrets_admin/SSM)</li>
             <li>Config resolver: system default → product pack → user override</li>
@@ -768,7 +824,7 @@
 </div>
 
 <footer>
-  <p>Falconium Backend Architecture · Current state · 2 June 2026</p>
+  <p>Falconium Backend Architecture · Current state · 25 June 2026</p>
   <p style="margin-top: 6px; font-size: 10.5px;">L1 Skills (Ilya-owned) · L2 Harness (Ilya-led via Claude Code) · L3 Infrastructure (Singularis-owned) · Seams = future layers, designed in today</p>
 </footer>
 
