@@ -234,9 +234,9 @@
 
 <header>
   <h1>FALCONIUM BACKEND ARCHITECTURE</h1>
-  <div class="subtitle">Django 5.0 · DRF · PostgreSQL · Custom step-graph runner · Runtime Wiki · SSM-backed secrets · Structured logging · Admin/User dashboards · Banker Brain (Hermes upgrade, flag-gated)</div>
+  <div class="subtitle">Django 5.0 · DRF · PostgreSQL · Custom step-graph runner · Runtime Wiki · SSM-backed secrets · Structured logging · Admin/User dashboards · Banker Brain (Hermes upgrade, flag-gated) · Per-user multi-tenancy</div>
   <div class="meta">
-    <span>25 June 2026 · Current state · FalcoMain cutover live · Runtime Wiki deployed · Admin + User dashboards live in production · detailed API payload logging to CloudWatch · Verified against work log · NEW: Banker Brain (Hermes upgrade) Phases 1–6 deployed to production — additive, behind feature flags (default off); live chat path unchanged.</span>
+    <span>30 June 2026 · Current state · FalcoMain cutover live · Runtime Wiki deployed · Admin + User dashboards live · Banker Brain Phases 1–6 deployed (flag-gated) · Verified against work log + git main. <strong>NEW — Per-user isolation:</strong> memory + learning are now keyed per user (session→user resolver, merged to main 25 Jun, <code>d2c4895</code>). Identity is <em>routed/inferred</em> today (model C); the <em>verified</em> authenticated chat endpoint (model A) is built on branch <code>feat/chat-path-auth</code>, pending the paired iPad change before deploy.</span>
     <a href="frontend-architecture.html" class="nav-link">→ Frontend Architecture</a>
   </div>
 </header>
@@ -298,7 +298,7 @@
 
     <div class="pipeline" data-layer="l2">
       <div class="pipeline-row">
-        <div class="pipe-step"><div class="pn">01</div><div class="nm">Receive</div><div class="sub">run_id assigned</div></div>
+        <div class="pipe-step"><div class="pn">01</div><div class="nm">Receive</div><div class="sub">run_id · identity → user</div></div>
         <div class="pipe-arrow">→</div>
         <div class="pipe-step"><div class="pn">02</div><div class="nm">Hydrate</div><div class="sub">memory · §3 atoms</div></div>
         <div class="pipe-arrow">→</div>
@@ -434,6 +434,9 @@
         <div class="card-meta">apps/memory/</div>
         <div class="card-body">
           Step 02 hydrates context from <code>memory_user_profile</code> and <code>memory_daily_log</code> at session start. Step 14 dispatches async Celery write. Three memory types per Memory Architecture v1 — <em>semantic</em>, <em>episodic</em>, <em>procedural</em> — specified but Phase 1 full deployment pending. The Supabase / MongoDB pattern from the n8n era is dropped. A curated always-on brain tier + distillation (<code>BrainTier</code>/<code>BrainClaim</code>, <code>apps/memory/brain.py</code>) and a three-layer People model (Facts/Relationship/Synthesis, <code>apps/memory/people.py</code>) now exist, flag-gated (<code>MEMORY_BRAIN_TIER_ENABLED</code> / <code>MEMORY_PEOPLE_LAYERS_ENABLED</code>).
+          <ul>
+            <li><strong>Now per-user (merged to main 25 Jun, <code>d2c4895</code>):</strong> memory + learning are keyed by a stable <code>user:&lt;id&gt;</code> key from <code>apps/memory/identity.py</code> — every conversation a banker has shares one brain, and one user's memory is invisible to another. Today the owner is <em>inferred</em> from the conversation (model C); the authenticated chat endpoint makes it <em>verified</em> (model A).</li>
+          </ul>
         </div>
       </div>
 
@@ -446,10 +449,21 @@
       </div>
 
       <div class="card" data-layer="l2">
-        <div class="card-title">FalcoMain endpoint <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
+        <div class="card-title">FalcoMain endpoint — legacy/interim <span class="card-status"><span class="status-dot status-built"></span>Built · live</span></div>
         <div class="card-meta">POST /api/v1/agents/falco/main/</div>
         <div class="card-body">
-          The user-facing chat endpoint. Accepts the n8n-shaped request, returns the n8n-shaped response. Receives traffic via the n8n forwarder at <code>backend.falconium.ai/n8n/webhook/df5cb261-…</code>. iPad wire contract unchanged.
+          The live chat endpoint. <strong>Unauthenticated</strong> (model C) — accepts the n8n-shaped request, returns the n8n-shaped response, and lets the graph <em>infer</em> the owner from <code>sessionId</code>. Receives traffic via the n8n forwarder at <code>backend.falconium.ai/n8n/webhook/df5cb261-…</code>. Kept live as the safety net during iPad migration to the authenticated path; trusted-internal-devices only until then.
+        </div>
+      </div>
+
+      <div class="card" data-layer="l2">
+        <div class="card-title">Authenticated chat endpoint — verified isolation <span class="card-status"><span class="status-dot status-partial"></span>Built · on branch, pending iPad</span></div>
+        <div class="card-meta">POST /api/v1/agents/falco/chat/ · branch <code>feat/chat-path-auth</code></div>
+        <div class="card-body">
+          The production-grade chat path (model A). Requires <code>Authorization: Bearer &lt;jwt&gt;</code>, runs as the <strong>verified</strong> <code>request.user</code> (not inferred), and checks the conversation belongs to the caller — <code>403</code> on a cross-user attempt, <code>401</code> with no token. Same request/response wire shape as the legacy endpoint, so the iPad change is small: add the token + point the send here, dropping the anonymous n8n hop. <strong>Built and tested on a branch; not yet on main</strong> — ships paired with the iPad change (PR + TestFlight). The login JWT now also carries <code>user_id</code>/<code>email</code>/<code>role</code> claims (<code>UserTokenObtainPairSerializer</code>).
+          <ul>
+            <li>Still open before external use (separate backend hardening): wide-open <code>UsersViewSet</code>, <code>AccountSerializer</code> Outlook-token leak, owner-less document/vector retrieval, unauthenticated audio WebSocket</li>
+          </ul>
         </div>
       </div>
 
@@ -566,10 +580,12 @@
         <div class="card-title">accounts <span class="card-status"><span class="status-dot status-built"></span>Built</span></div>
         <div class="card-meta">apps/accounts/</div>
         <div class="card-body">
-          User auth (JWT), profiles, Microsoft OAuth tokens.
+          User auth (JWT), profiles, Microsoft OAuth tokens. The <code>User</code> is the per-user tenant root (FK target for conversations, projects, files, memory, learning).
           <ul>
             <li>Models: <code>User</code> (email auth, JWT, Outlook tokens, avatar, wiki_storage_backend)</li>
             <li>OAuth callback: <code>/oauth/microsoft/callback/</code></li>
+            <li><strong>On branch <code>feat/chat-path-auth</code>:</strong> issued JWTs now carry <code>user_id</code>/<code>email</code>/<code>role</code> claims (<code>UserTokenObtainPairSerializer</code>, previously referenced in settings but missing)</li>
+            <li><strong>Hardening still open:</strong> <code>UsersViewSet</code> is a full ModelViewSet with no admin gate (any user can read/edit/delete any other); <code>AccountSerializer</code> is <code>exclude</code>-based and leaks the user's Outlook OAuth tokens to the client</li>
           </ul>
         </div>
       </div>
@@ -578,10 +594,10 @@
         <div class="card-title">chats <span class="card-status"><span class="status-dot status-partial"></span>Partial · legacy cleanup pending</span></div>
         <div class="card-meta">apps/chats/</div>
         <div class="card-body">
-          Conversations, messages, audio transcription WebSocket. The legacy <code>LLMRaptorView</code> and routing-style <code>AIAgent</code> chains are queued for removal once the FalcoMain pipeline is confirmed fully stable.
+          Conversations, messages, audio transcription WebSocket. <code>Conversations</code> carries the owner <code>user</code> FK — the join the authenticated chat path uses to enforce per-user ownership. The legacy <code>LLMRaptorView</code> and routing-style <code>AIAgent</code> chains are queued for removal once the FalcoMain pipeline is confirmed fully stable.
           <ul>
-            <li>Models: <code>Conversations</code>, <code>Message</code>, <code>QuestionLLM</code>, <code>PromptExample</code>, <code>AIAgentLog</code></li>
-            <li>WebSocket: <code>/ws/transcribe/</code></li>
+            <li>Models: <code>Conversations</code> (owner FK), <code>Message</code>, <code>QuestionLLM</code>, <code>PromptExample</code>, <code>AIAgentLog</code></li>
+            <li>WebSocket: <code>/ws/transcribe/</code> — <strong>still unauthenticated</strong> (<code>AudioConsumer</code> keys only on <code>meeting_id</code>); hardening item before external use</li>
           </ul>
         </div>
       </div>
@@ -601,7 +617,7 @@
         <div class="card-title">memory <span class="card-status"><span class="status-dot status-partial"></span>Partial · hydrate + write live</span></div>
         <div class="card-meta">apps/memory/</div>
         <div class="card-body">
-          Read (Step 02 hydrate) and async write (Step 14 Celery) operational in the FalcoMain pipeline. Full Memory Architecture Phase 1 — UserMemoryProfile, DailyLog, MemoryEntry models with bootstrap loading and session snapshots — pending. Replaces the n8n-era Supabase/MongoDB pattern.
+          Read (Step 02 hydrate) and async write (Step 14 Celery) operational in the FalcoMain pipeline. Full Memory Architecture Phase 1 — UserMemoryProfile, DailyLog, MemoryEntry models with bootstrap loading and session snapshots — pending. Replaces the n8n-era Supabase/MongoDB pattern. <strong>Now keyed per user</strong> via <code>apps/memory/identity.py</code> (<code>user:&lt;id&gt;</code> key, merged to main 25 Jun) — the tenancy guarantee for memory + learning.
         </div>
       </div>
 
@@ -824,7 +840,7 @@
 </div>
 
 <footer>
-  <p>Falconium Backend Architecture · Current state · 25 June 2026</p>
+  <p>Falconium Backend Architecture · Current state · 30 June 2026</p>
   <p style="margin-top: 6px; font-size: 10.5px;">L1 Skills (Ilya-owned) · L2 Harness (Ilya-led via Claude Code) · L3 Infrastructure (Singularis-owned) · Seams = future layers, designed in today</p>
 </footer>
 
